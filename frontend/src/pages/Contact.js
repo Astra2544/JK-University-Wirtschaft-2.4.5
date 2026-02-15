@@ -138,6 +138,7 @@ export default function Contact() {
   });
   const [file, setFile] = useState(null);
   const [fileError, setFileError] = useState('');
+  const [dragging, setDragging] = useState(false);
   const [status, setStatus] = useState({ type: '', message: '' });
   const [sending, setSending] = useState(false);
   const [touched, setTouched] = useState({});
@@ -177,6 +178,40 @@ export default function Contact() {
   const clearFile = () => {
     setFile(null); setFileError('');
     if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const validateAndSetFile = (f) => {
+    setFileError('');
+    if (!f) { setFile(null); return; }
+    if (!['application/pdf','image/jpeg','image/png'].includes(f.type)) {
+      setFileError('Nur PDF, JPG und PNG Dateien sind erlaubt.');
+      setFile(null); return;
+    }
+    if (f.size > 10 * 1024 * 1024) {
+      setFileError('Die Datei darf maximal 10 MB groß sein.');
+      setFile(null); return;
+    }
+    setFile(f);
+  };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
+    const f = e.dataTransfer.files[0];
+    if (f) validateAndSetFile(f);
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(true);
+  };
+
+  const onDragLeave = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragging(false);
   };
 
   const isMitmachen = fd.anliegen === 'Mitmachen bei der Studienvertretung';
@@ -377,8 +412,12 @@ export default function Contact() {
                           <p className="text-xs text-slate-500 mb-2">Lade deine Inskriptions- oder Studienbestätigung hoch (PDF, JPG oder PNG, max. 10 MB).</p>
                           <div
                             onClick={() => !file && fileRef.current?.click()}
+                            onDrop={onDrop}
+                            onDragOver={onDragOver}
+                            onDragLeave={onDragLeave}
                             className={`relative border-2 border-dashed rounded-xl p-5 text-center transition-all ${
                               file ? 'border-green-300 bg-green-50'
+                              : dragging ? 'border-blue-400 bg-blue-50 scale-[1.01]'
                               : fileError ? 'border-red-300 bg-red-50'
                               : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50 cursor-pointer'
                             }`}

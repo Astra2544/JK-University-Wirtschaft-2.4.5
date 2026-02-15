@@ -219,7 +219,7 @@ export function CustomCursor() {
     <>
       {/* Innerer Punkt - folgt dem Cursor mit minimaler Verzögerung */}
       <motion.div
-        className="fixed top-0 left-0 pointer-events-none z-[9999] rounded-full"
+        className="fixed top-0 left-0 pointer-events-none z-[10001] rounded-full"
         style={{
           x: dotX,
           y: dotY,
@@ -242,7 +242,7 @@ export function CustomCursor() {
 
       {/* Äußerer Ring - folgt elegant mit sanfter Verzögerung */}
       <motion.div
-        className="fixed top-0 left-0 pointer-events-none z-[9998] rounded-full"
+        className="fixed top-0 left-0 pointer-events-none z-[10000] rounded-full"
         style={{
           x: ringX,
           y: ringY,

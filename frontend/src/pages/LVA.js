@@ -620,7 +620,7 @@ export default function LVA() {
               <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Lehrveranstaltungen</p>
             </div>
             <h1 data-testid="lva-page-title" className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight mb-4">
-              LVA-Bewertungen
+              LVA-Suche/Bewertungen
             </h1>
             <p className="text-lg text-slate-500 max-w-xl leading-relaxed">
               Finde und bewerte Lehrveranstaltungen anonym. Hilf anderen Studierenden bei der Wahl ihrer Kurse!

@@ -9,6 +9,8 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Menu, X, User, LogOut } from 'lucide-react';
 
+const IMG_V = `?v=${process.env.REACT_APP_BUILD_TIME || Date.now()}`;
+
 // Navigation Links
 const links = [
   { path: '/', label: 'Home' },
@@ -82,8 +84,8 @@ export default function Navbar() {
           
           {/* Logo */}
           <Link to="/" data-testid="nav-logo" className="flex items-center gap-3 group">
-            <img 
-              src="/images/logo.png" 
+            <img
+              src={`/images/logo.png${IMG_V}`}
               alt="ÖH Wirtschaft Logo" 
               className="w-12 h-12 object-contain group-hover:scale-105 transition-transform"
             />

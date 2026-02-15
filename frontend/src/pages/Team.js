@@ -22,6 +22,8 @@ import { RevealOnScroll } from '../components/Animations';
 import { Mail, ArrowRight, Globe, Camera, PartyPopper, Newspaper, Users, Award, UserPlus } from 'lucide-react';
 import Marquee from '../components/Marquee';
 
+const IMG_V = `?v=${process.env.REACT_APP_BUILD_TIME || Date.now()}`;
+
 // ─── ANIMATION VARIANTEN ───────────────────────────────────────────────────
 const pv = { 
   initial: { opacity: 0 }, 
@@ -145,7 +147,7 @@ function BereichsleiterCard({ person, index }) {
       <div className="flex items-start gap-4">
         <div className={`w-14 h-14 rounded-xl ${style.initials} border overflow-hidden shrink-0`}>
           <img 
-            src={person.image} 
+            src={`${person.image}${IMG_V}`} 
             alt={person.name}
             className="w-full h-full object-cover"
           />
@@ -180,7 +182,7 @@ function StellvertreterCard({ person, index }) {
           'ring-2 ring-purple-100'
         }`}>
           <img 
-            src={person.image} 
+            src={`${person.image}${IMG_V}`} 
             alt={person.name}
             className="w-full h-full object-cover"
           />
@@ -252,7 +254,7 @@ export default function Team() {
             <div data-testid="team-lead-card" className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row items-center gap-6">
               <div className="w-20 h-20 rounded-2xl bg-white/20 overflow-hidden shrink-0">
                 <img 
-                  src={vorsitzender.image} 
+                  src={`${vorsitzender.image}${IMG_V}`} 
                   alt={vorsitzender.name}
                   className="w-full h-full object-cover"
                 />

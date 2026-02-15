@@ -21,6 +21,8 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { Instagram, Linkedin, Mail, ExternalLink } from 'lucide-react';
 
+const IMG_V = `?v=${process.env.REACT_APP_BUILD_TIME || Date.now()}`;
+
 // Rechtliche Links für den Footer
 const rechtlicheLinks = [
   { label: 'Impressum', path: '/impressum' },
@@ -39,8 +41,8 @@ export default function Footer() {
           {/* Linke Spalte: Logo + Beschreibung */}
           <div className="md:col-span-5">
             <div className="flex items-center gap-3 mb-4">
-              <img 
-                src="/images/logo.png" 
+              <img
+                src={`/images/logo.png${IMG_V}`}
                 alt="ÖH Wirtschaft Logo" 
                 className="w-12 h-12 object-contain"
               />

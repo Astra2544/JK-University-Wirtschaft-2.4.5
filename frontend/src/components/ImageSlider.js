@@ -13,7 +13,7 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 
-const IMG_V = '?v=2';
+const IMG_V = `?v=${process.env.REACT_APP_BUILD_TIME || Date.now()}`;
 
 // Slider Bilder mit individueller Positionierung für perfekte Zentrierung
 const sliderImages = [

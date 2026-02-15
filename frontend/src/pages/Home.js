@@ -26,7 +26,7 @@ import { ArrowRight, Users, BookOpen, Headphones, Newspaper, Instagram, Linkedin
 import ImageSlider from '../components/ImageSlider';
 import Marquee from '../components/Marquee';
 
-const IMG_V = '?v=2';
+const IMG_V = `?v=${process.env.REACT_APP_BUILD_TIME || Date.now()}`;
 
 // ─── ANIMATION VARIANTEN ───────────────────────────────────────────────────
 // Für fade-in/fade-out Effekte bei Seitenwechsel

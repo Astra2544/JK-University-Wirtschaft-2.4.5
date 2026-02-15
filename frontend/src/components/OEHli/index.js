@@ -26,7 +26,7 @@ function MessageBubble({ message, onButtonClick }) {
       <div className={`max-w-[85%] ${isBot ? 'order-2' : ''}`}>
         {isBot && (
           <div className="flex items-center gap-1.5 mb-1">
-            <img src="/images/ÖHli_logo.png" alt="ÖHli" className="w-8 h-8 object-contain flex-shrink-0" />
+            <img src="/images/oehli-logo.png" alt="ÖHli" className="w-8 h-8 object-contain flex-shrink-0" />
             <span className="text-[11px] font-medium text-slate-400">ÖHli</span>
           </div>
         )}
@@ -68,7 +68,7 @@ function TypingIndicator() {
     >
       <div>
         <div className="flex items-center gap-1.5 mb-1">
-          <img src="/images/ÖHli_logo.png" alt="ÖHli" className="w-8 h-8 object-contain flex-shrink-0" />
+          <img src="/images/oehli-logo.png" alt="ÖHli" className="w-8 h-8 object-contain flex-shrink-0" />
           <span className="text-[11px] font-medium text-slate-400">ÖHli tippt...</span>
         </div>
         <div className="px-4 py-3 bg-slate-50 rounded-2xl rounded-tl-md border border-slate-100 inline-flex gap-1.5">
@@ -233,7 +233,7 @@ export default function OEHliChat() {
           >
             <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 flex-shrink-0">
               <div className="flex items-center gap-2.5">
-                <img src="/images/ÖHli_logo.png" alt="ÖHli" className="w-10 h-10 object-contain" />
+                <img src="/images/oehli-logo.png" alt="ÖHli" className="w-10 h-10 object-contain" />
                 <div>
                   <h3 className="text-white font-semibold text-sm leading-none">ÖHli</h3>
                   <p className="text-blue-100 text-[10px] mt-0.5">Dein Studien-Assistent</p>

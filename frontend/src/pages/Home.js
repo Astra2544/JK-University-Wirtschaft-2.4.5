@@ -21,6 +21,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { RevealOnScroll } from '../components/Animations';
 import { ArrowRight, Users, BookOpen, Headphones, Newspaper, Instagram, Linkedin, Mail, TrendingUp } from 'lucide-react';
 import ImageSlider from '../components/ImageSlider';
@@ -36,14 +37,10 @@ const pv = {
   exit: { opacity: 0, transition: { duration: 0.2 } } 
 };
 
-// ─── QUICK-LINK KARTEN ─────────────────────────────────────────────────────
-// Die 4 Hauptbereiche der Website
-const cards = [
-  { icon: Users, label: 'Das Team', sub: 'Lerne deine Vertretung kennen', to: '/team', accent: 'blue' },
-  { icon: BookOpen, label: 'Studium', sub: 'Programme, Planer & Updates', to: '/studium', accent: 'gold' },
-  { icon: Headphones, label: 'Kontakt', sub: 'Sprechstunden, Kalender, FAQ', to: '/contact', accent: 'blue' },
-  { icon: Newspaper, label: 'Ceteris Paribus', sub: 'Unsere Zeitschrift', to: '/magazine', accent: 'gold' },
-];
+// ─── QUICK-LINK KARTEN ICONS ────────────────────────────────────────────────
+const cardIcons = [Users, BookOpen, Headphones, Newspaper];
+const cardRoutes = ['/team', '/studium', '/contact', '/magazine'];
+const cardAccents = ['blue', 'gold', 'blue', 'gold'];
 
 // ─── STUDIENGÄNGE ──────────────────────────────────────────────────────────
 // Bachelor-Programme
@@ -68,6 +65,15 @@ const master = [
 
 // ─── HOME KOMPONENTE ───────────────────────────────────────────────────────
 export default function Home() {
+  const { t } = useTranslation();
+
+  const cards = [
+    { icon: cardIcons[0], label: t('home.cards.team.label'), sub: t('home.cards.team.sub'), to: cardRoutes[0], accent: cardAccents[0] },
+    { icon: cardIcons[1], label: t('home.cards.studium.label'), sub: t('home.cards.studium.sub'), to: cardRoutes[1], accent: cardAccents[1] },
+    { icon: cardIcons[2], label: t('home.cards.kontakt.label'), sub: t('home.cards.kontakt.sub'), to: cardRoutes[2], accent: cardAccents[2] },
+    { icon: cardIcons[3], label: t('home.cards.magazine.label'), sub: t('home.cards.magazine.sub'), to: cardRoutes[3], accent: cardAccents[3] },
+  ];
+
   return (
     <motion.div variants={pv} initial="initial" animate="animate" exit="exit" className="overflow-x-hidden">
       
@@ -88,20 +94,19 @@ export default function Home() {
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1, duration: 0.6 }}
                 className="inline-flex items-center gap-2 mb-5">
                 <span className="w-2 h-2 rounded-full bg-gold-500" />
-                <span className="text-sm text-slate-500 font-medium">Studienvertretung an der JKU Linz</span>
+                <span className="text-sm text-slate-500 font-medium">{t('home.subtitle')}</span>
               </motion.div>
               
               {/* Hauptüberschrift */}
               <motion.h1 initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2, duration: 0.6 }}
                 className="text-3xl sm:text-4xl md:text-5xl lg:text-[3.2rem] font-bold text-slate-900 leading-[1.1] mb-5 tracking-tight">
-                Deine ÖH{' '}<span className="text-blue-500">Wirtschaft</span>
+                {t('home.title')}{' '}<span className="text-blue-500">{t('home.titleHighlight')}</span>
               </motion.h1>
               
               {/* Beschreibungstext */}
               <motion.p initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35, duration: 0.6 }}
                 className="text-base md:text-lg text-slate-500 leading-relaxed mb-7 max-w-lg mx-auto lg:mx-0">
-                Wir sind deine offiziell gewählte Studienvertretung an der JKU. Wir setzen uns für die Interessen aller 
-                Studierenden in Wirtschaft ein &ndash; als dein Sprachrohr gegenüber den Professor:innen.
+                {t('home.desc')}
               </motion.p>
               
               {/* CTA Buttons */}
@@ -109,11 +114,11 @@ export default function Home() {
                 className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-3 mb-7">
                 <Link to="/team" data-testid="hero-cta-team"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 px-6 py-3.5 rounded-full transition-all hover:shadow-lg hover:shadow-blue-500/20">
-                  Team kennenlernen <ArrowRight size={16} />
+                  {t('home.ctaTeam')} <ArrowRight size={16} />
                 </Link>
                 <Link to="/contact" data-testid="hero-cta-contact"
                   className="w-full sm:w-auto inline-flex items-center justify-center gap-2 text-sm font-semibold text-slate-700 border-2 border-slate-200 hover:border-blue-200 hover:text-blue-600 px-6 py-3.5 rounded-full transition-all">
-                  Kontakt & FAQ
+                  {t('home.ctaContact')}
                 </Link>
               </motion.div>
               
@@ -181,7 +186,7 @@ export default function Home() {
       </section>
 
       <Marquee
-        items={['Von Studierenden, für Studierende', 'Dein Studium, deine Zukunft', 'Gemeinsam mehr erreichen', 'Deine Stimme zählt', 'Wir kämpfen für dich']}
+        items={t('home.marquee', { returnObjects: true })}
         variant="blue"
         speed={35}
       />
@@ -195,7 +200,7 @@ export default function Home() {
           <RevealOnScroll>
             <div className="flex items-center gap-3 mb-8">
               <div className="w-8 h-[3px] rounded-full bg-gold-500" />
-              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Auf einen Blick</p>
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('home.quickLinks')}</p>
             </div>
           </RevealOnScroll>
           
@@ -251,28 +256,25 @@ export default function Home() {
             <div className="text-center lg:text-left">
               <div className="inline-flex items-center gap-3 mb-4">
                 <div className="w-8 h-[3px] rounded-full bg-blue-500" />
-                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Über uns</p>
+                <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('home.about')}</p>
               </div>
               <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 leading-tight">
-                Wie arbeitet eine Studienvertretung (kurz StV.) genau?
+                {t('home.aboutTitle')}
               </h2>
               <p className="text-sm sm:text-[15px] text-slate-500 leading-[1.8] mb-3">
-                Die ÖH Wirtschaft ist das direkt gewählte Gremium, das die Studierenden eines Studienbereichs vertritt. 
-                Dabei agieren wir unabhängig vom Vorsitz der ÖH JKU oder anderen Gremien &ndash; alle unsere Projekte, 
-                Services und Entscheidungen entstehen direkt innerhalb unseres Teams.
+                {t('home.aboutP1')}
               </p>
               <p className="text-sm sm:text-[15px] text-slate-500 leading-[1.8] mb-6">
-                Darüber hinaus unterstützen wir dich mit zahlreichen Services: von individueller Studienberatung bis hin 
-                zu praktischen Broschüren und regelmäßigen Veranstaltungen.
+                {t('home.aboutP2')}
               </p>
               
               {/* Statistik-Grid - separat unter dem Text */}
               <div className="grid grid-cols-4 gap-2 sm:gap-3 max-w-md mx-auto lg:mx-0">
                 {[
-                  { n: '14+', l: 'Teammitglieder', c: 'blue' },
-                  { n: '20+', l: 'Studiengänge', c: 'gold' },
-                  { n: '3', l: 'Studienplaner', c: 'blue' },
-                  { n: '100%', l: 'Ehrenamtlich', c: 'gold' },
+                  { n: '14+', l: t('home.stats.members'), c: 'blue' },
+                  { n: '20+', l: t('home.stats.programs'), c: 'gold' },
+                  { n: '3', l: t('home.stats.planners'), c: 'blue' },
+                  { n: '100%', l: t('home.stats.volunteer'), c: 'gold' },
                 ].map(s => (
                   <div key={s.l} className="bg-slate-50 rounded-xl p-3 sm:p-4 text-center border border-slate-100">
                     <p className={`text-lg sm:text-xl font-bold mb-0.5 ${s.c === 'blue' ? 'text-blue-500' : 'text-gold-500'}`}>{s.n}</p>
@@ -286,7 +288,7 @@ export default function Home() {
       </section>
 
       <Marquee
-        items={['Wissen teilen', 'Chancen nutzen', 'Horizonte erweitern', 'Zusammen wachsen', 'Zukunft gestalten']}
+        items={t('home.marquee2', { returnObjects: true })}
         variant="gold"
         speed={38}
         reverse
@@ -305,8 +307,8 @@ export default function Home() {
                   <TrendingUp className="text-blue-500" size={28} />
                 </div>
                 <div>
-                  <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">Beliebteste LVAs</h2>
-                  <p className="text-sm text-slate-500">Finde und bewerte Lehrveranstaltungen anonym</p>
+                  <h2 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">{t('home.lvaBanner')}</h2>
+                  <p className="text-sm text-slate-500">{t('home.lvaBannerSub')}</p>
                 </div>
               </div>
               <Link 
@@ -314,7 +316,7 @@ export default function Home() {
                 data-testid="lva-banner-btn"
                 className="inline-flex items-center gap-2 px-6 py-3 bg-blue-500 hover:bg-blue-600 text-white font-semibold rounded-full transition-colors text-sm whitespace-nowrap"
               >
-                Zu den LVAs <ArrowRight size={16} />
+                {t('home.lvaBannerBtn')} <ArrowRight size={16} />
               </Link>
             </div>
           </RevealOnScroll>
@@ -330,10 +332,10 @@ export default function Home() {
           <RevealOnScroll>
             <div className="flex items-center gap-3 mb-5">
               <div className="w-8 h-[3px] rounded-full bg-gold-500" />
-              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Studiengänge</p>
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('home.programs')}</p>
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2 leading-tight">Wir vertreten dich in</h2>
-            <p className="text-[15px] text-slate-500 mb-10">Folgende Studiengänge fallen in den Bereich der ÖH Wirtschaft:</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-2 leading-tight">{t('home.programsTitle')}</h2>
+            <p className="text-[15px] text-slate-500 mb-10">{t('home.programsSub')}</p>
           </RevealOnScroll>
           
           {/* Bachelor / Master Karten */}
@@ -374,7 +376,7 @@ export default function Home() {
             <div className="mt-6">
               <Link to="/studium" data-testid="programs-more-btn"
                 className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-500 hover:text-blue-600 transition-colors">
-                Alle Programme, MBA, ULG & Updates <ArrowRight size={15} />
+                {t('home.programsMore')} <ArrowRight size={15} />
               </Link>
             </div>
           </RevealOnScroll>
@@ -391,10 +393,10 @@ export default function Home() {
             <div className="text-center mb-6 md:mb-8">
               <div className="flex items-center justify-center gap-3 mb-2">
                 <div className="w-6 sm:w-8 h-[3px] rounded-full bg-blue-500" />
-                <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">Einblicke</p>
+                <p className="text-xs sm:text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('home.gallery')}</p>
                 <div className="w-6 sm:w-8 h-[3px] rounded-full bg-blue-500" />
               </div>
-              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">Unser Team in Aktion</h2>
+              <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900">{t('home.galleryTitle')}</h2>
             </div>
           </RevealOnScroll>
           
@@ -418,24 +420,23 @@ export default function Home() {
               <div className="absolute bottom-0 left-0 w-56 h-56 bg-blue-400/20 rounded-full blur-3xl" />
               
               <div className="relative">
-                <p className="text-gold-500 text-sm font-semibold uppercase tracking-wider mb-4">Mitmachen</p>
+                <p className="text-gold-500 text-sm font-semibold uppercase tracking-wider mb-4">{t('home.cta')}</p>
                 <h2 className="text-2xl md:text-3xl font-bold text-white mb-4 leading-tight">
-                  Du willst die JKU aktiv mitgestalten?
+                  {t('home.ctaTitle')}
                 </h2>
                 <p className="text-blue-100 text-[15px] max-w-md mx-auto mb-8 leading-relaxed">
-                  Werde Teil unseres Teams! Sammle ECTS, gestalte Curricula mit und baue echte Skills auf &ndash; 
-                  von Projektmanagement bis Verhandlungsführung.
+                  {t('home.ctaDesc')}
                 </p>
                 
                 {/* Buttons */}
                 <div className="flex flex-wrap justify-center gap-3">
                   <Link to="/contact" data-testid="cta-email-btn"
                     className="text-sm font-semibold text-blue-700 bg-gold-500 hover:bg-gold-600 px-6 py-3 rounded-full transition-all hover:shadow-lg">
-                    Jetzt mitmachen
+                    {t('home.ctaBtn')}
                   </Link>
                   <Link to="/team" data-testid="cta-team-btn"
                     className="text-sm font-semibold text-white border-2 border-white/30 hover:border-white/60 px-6 py-3 rounded-full transition-all">
-                    Team ansehen
+                    {t('home.ctaTeamBtn')}
                   </Link>
                 </div>
               </div>

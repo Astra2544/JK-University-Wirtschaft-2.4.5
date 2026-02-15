@@ -2,10 +2,10 @@
  * ═══════════════════════════════════════════════════════════════════════════
  *  STUDIENPLANER PAGE | ÖH Wirtschaft Website
  * ═══════════════════════════════════════════════════════════════════════════
- * 
+ *
  *  Beschreibung:
  *  Seite mit Links zu den Studienplanern für verschiedene Studiengänge.
- * 
+ *
  * ───────────────────────────────────────────────────────────────────────────
  *  Entwickelt von:     Raphael Böhmer
  *  Unternehmen:        Astra Capital e.U.
@@ -15,41 +15,16 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { RevealOnScroll } from '../components/Animations';
 import { BookOpen, ArrowUpRight, ArrowRight, FileText, Download } from 'lucide-react';
 import Marquee from '../components/Marquee';
 
-// Animation variants
 const pageVariants = {
   initial: { opacity: 0 },
   animate: { opacity: 1, transition: { duration: 0.5 } },
   exit: { opacity: 0, transition: { duration: 0.2 } }
 };
-
-// Studienplaner Daten
-const studienplaner = [
-  { 
-    title: 'Wirtschaftswissenschaften',
-    shortName: 'WiWi',
-    url: 'https://heyzine.com/flip-book/4efdf121a1.html',
-    color: 'blue',
-    description: 'Bachelor Wirtschaftswissenschaften – Alle Pflichtfächer, Spezialisierungen und ECTS-Infos.'
-  },
-  { 
-    title: 'Betriebswirtschaftslehre',
-    shortName: 'BWL',
-    url: 'https://heyzine.com/flip-book/93d13220c6.html',
-    color: 'gold',
-    description: 'Bachelor BWL – Von den Grundlagen bis zur Spezialisierung.'
-  },
-  { 
-    title: 'International Business Administration',
-    shortName: 'IBA',
-    url: 'https://heyzine.com/flip-book/2b404116c1.html',
-    color: 'teal',
-    description: 'Bachelor IBA – Internationales Management und globale Perspektiven.'
-  },
-];
 
 const colorClasses = {
   blue: {
@@ -79,43 +54,69 @@ const colorClasses = {
 };
 
 export default function Studienplaner() {
+  const { t } = useTranslation();
+
+  const studienplaner = [
+    {
+      title: 'Wirtschaftswissenschaften',
+      shortName: 'WiWi',
+      url: 'https://heyzine.com/flip-book/4efdf121a1.html',
+      color: 'blue',
+      description: t('studienplaner.descriptions.wiwi')
+    },
+    {
+      title: 'Betriebswirtschaftslehre',
+      shortName: 'BWL',
+      url: 'https://heyzine.com/flip-book/93d13220c6.html',
+      color: 'gold',
+      description: t('studienplaner.descriptions.bwl')
+    },
+    {
+      title: 'International Business Administration',
+      shortName: 'IBA',
+      url: 'https://heyzine.com/flip-book/2b404116c1.html',
+      color: 'teal',
+      description: t('studienplaner.descriptions.iba')
+    },
+  ];
+
   return (
-    <motion.div 
-      variants={pageVariants} 
-      initial="initial" 
-      animate="animate" 
+    <motion.div
+      variants={pageVariants}
+      initial="initial"
+      animate="animate"
       exit="exit"
     >
       {/* Header */}
       <section className="pt-28 pb-12 md:pt-40 md:pb-16 px-5 relative overflow-hidden">
         <div className="absolute top-10 -right-40 w-[500px] h-[500px] rounded-full bg-blue-50 blur-3xl opacity-50" />
         <div className="max-w-[1120px] mx-auto relative">
-          <motion.div 
-            initial={{ opacity: 0, y: 15 }} 
-            animate={{ opacity: 1, y: 0 }} 
+          <motion.div
+            initial={{ opacity: 0, y: 15 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
           >
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-[3px] rounded-full bg-gold-500" />
               <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">
-                Dein Studium planen
+                {t('studienplaner.section')}
               </p>
             </div>
-            <h1 
-              data-testid="studienplaner-title" 
+            <h1
+              data-testid="studienplaner-title"
               className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight mb-4"
             >
-              Studienplaner
+              {t('studienplaner.title')}
             </h1>
             <p className="text-lg text-slate-500 max-w-2xl leading-relaxed">
-              Unsere Studienplaner helfen dir dabei, den Einstieg ins Studium zu meistern. Von Pflichtlehrveranstaltungen über Spezialisierungen bis hin zur Abschlussarbeit findest du darin alle wichtigen Infos.
+              {t('studienplaner.desc')}
             </p>
           </motion.div>
         </div>
       </section>
 
       <Marquee
-        items={['Schritt für Schritt zum Abschluss', 'Dein Plan, dein Tempo', 'Struktur schafft Freiheit', 'Gut geplant ist halb bestanden', 'Der Weg ist das Ziel']}
+        items={t('studienplaner.marquee', { returnObjects: true })}
         variant="blue"
         speed={35}
         reverse
@@ -129,7 +130,7 @@ export default function Studienplaner() {
               const colors = colorClasses[planer.color];
               return (
                 <RevealOnScroll key={planer.title} delay={index * 0.1}>
-                  <div 
+                  <div
                     data-testid={`studienplaner-card-${planer.shortName.toLowerCase()}`}
                     className={`${colors.bg} rounded-2xl border-2 ${colors.border} p-6 transition-all hover:shadow-lg group`}
                   >
@@ -142,7 +143,7 @@ export default function Studienplaner() {
                         {planer.shortName}
                       </span>
                     </div>
-                    
+
                     {/* Content */}
                     <h3 className="text-xl font-bold text-slate-900 mb-2">
                       {planer.title}
@@ -150,9 +151,9 @@ export default function Studienplaner() {
                     <p className="text-sm text-slate-500 mb-6 leading-relaxed">
                       {planer.description}
                     </p>
-                    
+
                     {/* Button */}
-                    <a 
+                    <a
                       href={planer.url}
                       target="_blank"
                       rel="noopener noreferrer"
@@ -160,7 +161,7 @@ export default function Studienplaner() {
                       className={`w-full ${colors.btn} text-white font-semibold py-3.5 px-6 rounded-xl flex items-center justify-center gap-2 transition-all shadow-sm hover:shadow-md group-hover:scale-[1.02]`}
                     >
                       <FileText size={18} />
-                      Studienplaner öffnen
+                      {t('studienplaner.openBtn')}
                       <ArrowUpRight size={16} className="ml-1" />
                     </a>
                   </div>
@@ -182,10 +183,10 @@ export default function Studienplaner() {
                 </div>
                 <div>
                   <h3 className="text-lg font-bold text-slate-900 mb-2">
-                    Gedruckte Versionen verfügbar
+                    {t('studienplaner.printTitle')}
                   </h3>
                   <p className="text-sm text-slate-500 leading-relaxed">
-                    Gedruckte Versionen der Studienplaner gibt es bei unseren Sprechstunden oder am ÖH-Broschürenständer im Keplergebäude. Komm einfach vorbei!
+                    {t('studienplaner.printDesc')}
                   </p>
                 </div>
               </div>
@@ -200,17 +201,17 @@ export default function Studienplaner() {
           <RevealOnScroll>
             <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-8 md:p-10 text-center">
               <h2 className="text-xl md:text-2xl font-bold text-white mb-3">
-                Fragen zum Studium?
+                {t('studienplaner.ctaTitle')}
               </h2>
               <p className="text-blue-100 mb-6 max-w-md mx-auto">
-                Wir helfen dir gerne bei der Planung deines Studiums.
+                {t('studienplaner.ctaDesc')}
               </p>
-              <a 
+              <a
                 href="mailto:wirtschaft@oeh.jku.at"
                 data-testid="studienplaner-contact-btn"
                 className="inline-flex items-center gap-2 text-sm font-semibold text-blue-600 bg-white hover:bg-blue-50 px-6 py-3 rounded-full transition-all"
               >
-                Kontakt aufnehmen <ArrowRight size={15} />
+                {t('studienplaner.ctaBtn')} <ArrowRight size={15} />
               </a>
             </div>
           </RevealOnScroll>

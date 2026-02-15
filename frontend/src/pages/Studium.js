@@ -1,11 +1,12 @@
 /**
- * ─────────────────────────────────────────────────────────────
- *  Studium Page | ÖH Wirtschaft
+ * -----------------------------------------------------------------
+ *  Studium Page | OeH Wirtschaft
  *  Komplett dynamisch aus der Datenbank
- * ─────────────────────────────────────────────────────────────
+ * -----------------------------------------------------------------
  */
 
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
 import { RevealOnScroll } from '../components/Animations';
@@ -16,7 +17,6 @@ const API_URL = process.env.REACT_APP_BACKEND_URL;
 
 const pv = { initial: { opacity: 0 }, animate: { opacity: 1, transition: { duration: 0.5 } }, exit: { opacity: 0, transition: { duration: 0.2 } } };
 
-// Fallback-Daten falls API nicht erreichbar
 const fallbackBrochures = [
   { title: 'Wirtschaftswissenschaften', url: 'https://heyzine.com/flip-book/4efdf121a1.html' },
   { title: 'Betriebswirtschaftslehre', url: 'https://heyzine.com/flip-book/93d13220c6.html' },
@@ -40,7 +40,6 @@ function Acc({ title, children, testId }) {
 }
 
 function ProgCard({ title, items, color }) {
-  // Farb-Mapping
   const colorClass = {
     blue: { text: 'text-blue-500', dot: 'bg-blue-500' },
     gold: { text: 'text-amber-500', dot: 'bg-amber-500' },
@@ -65,6 +64,7 @@ function ProgCard({ title, items, color }) {
 }
 
 export default function Studium() {
+  const { t } = useTranslation();
   const [categories, setCategories] = useState([]);
   const [updates, setUpdates] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -77,15 +77,14 @@ export default function Studium() {
           fetch(`${API_URL}/api/study/categories`),
           fetch(`${API_URL}/api/study/updates/grouped`)
         ]);
-        
+
         if (!catRes.ok || !updRes.ok) {
           throw new Error('API nicht erreichbar');
         }
-        
+
         const catData = await catRes.json();
         const updData = await updRes.json();
-        
-        // Sortiere Kategorien nach sort_order
+
         setCategories(catData.sort((a, b) => a.sort_order - b.sort_order));
         setUpdates(updData);
       } catch (err) {
@@ -95,13 +94,12 @@ export default function Studium() {
         setLoading(false);
       }
     };
-    
+
     fetchData();
   }, []);
 
-  // Finde aktuelles Semester aus den Updates
-  const currentSemester = updates.length > 0 && updates[0].updates?.[0]?.semester 
-    ? updates[0].updates[0].semester 
+  const currentSemester = updates.length > 0 && updates[0].updates?.[0]?.semester
+    ? updates[0].updates[0].semester
     : 'Wintersemester 2025/26';
 
   return (
@@ -110,15 +108,15 @@ export default function Studium() {
         <div className="absolute top-20 -left-40 w-[500px] h-[500px] rounded-full bg-gold-50 blur-3xl opacity-50" />
         <div className="max-w-[1120px] mx-auto relative">
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }}>
-            <div className="flex items-center gap-3 mb-4"><div className="w-8 h-[3px] rounded-full bg-blue-500" /><p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Studiengänge & Updates</p></div>
-            <h1 data-testid="studium-page-title" className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight mb-4">Dein Studium</h1>
-            <p className="text-lg text-slate-500 max-w-xl leading-relaxed">Alle wirtschaftlichen Studiengänge, aktuelle Änderungen und unsere Studienplaner &ndash; kompakt und übersichtlich.</p>
+            <div className="flex items-center gap-3 mb-4"><div className="w-8 h-[3px] rounded-full bg-blue-500" /><p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('studium.section')}</p></div>
+            <h1 data-testid="studium-page-title" className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight mb-4">{t('studium.title')}</h1>
+            <p className="text-lg text-slate-500 max-w-xl leading-relaxed">{t('studium.desc')}</p>
           </motion.div>
         </div>
       </section>
 
       <Marquee
-        items={['Dein Weg beginnt hier', 'Global denken', 'Karriere starten', 'Potenzial entfalten', 'Die Zukunft gehört dir']}
+        items={t('studium.marquee', { returnObjects: true })}
         variant="gold"
         speed={36}
         reverse
@@ -132,53 +130,50 @@ export default function Studium() {
             </div>
           ) : error ? (
             <div className="text-center py-12 text-slate-500">
-              <p>Daten konnten nicht geladen werden.</p>
+              <p>{t('studium.loadError')}</p>
             </div>
           ) : (
             <>
-              {/* Dynamische Kategorien-Cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-16">
                 {categories.map((category, index) => (
                   <RevealOnScroll key={category.id} delay={index * 0.05}>
-                    <ProgCard 
-                      title={category.display_name} 
-                      items={category.programs.sort((a, b) => a.sort_order - b.sort_order)} 
+                    <ProgCard
+                      title={category.display_name}
+                      items={category.programs.sort((a, b) => a.sort_order - b.sort_order)}
                       color={category.color || 'blue'}
                     />
                   </RevealOnScroll>
                 ))}
               </div>
 
-              {/* Studienplaner Link */}
               <RevealOnScroll>
                 <div className="mb-16 bg-gradient-to-br from-blue-50 to-slate-50 rounded-2xl p-6 md:p-8 border border-slate-100">
                   <div className="flex items-center gap-2 mb-3">
                     <BookOpen size={20} className="text-blue-500"/>
-                    <h2 className="text-xl font-bold text-slate-900">Studienplaner</h2>
+                    <h2 className="text-xl font-bold text-slate-900">{t('studium.planner')}</h2>
                   </div>
                   <p className="text-[15px] text-slate-500 leading-relaxed mb-5 max-w-2xl">
-                    Unsere Studienplaner helfen dir dabei, den Einstieg ins Studium zu meistern. Von Pflichtlehrveranstaltungen über Spezialisierungen bis hin zur Abschlussarbeit findest du darin alle wichtigen Infos.
+                    {t('studium.plannerDesc')}
                   </p>
-                  <Link 
+                  <Link
                     to="/studienplaner"
                     data-testid="studienplaner-link-btn"
                     className="inline-flex items-center gap-2 text-base font-semibold text-white bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-full transition-all shadow-sm hover:shadow-md"
                   >
-                    Zu den Studienplanern <ArrowRight size={18}/>
+                    {t('studium.plannerBtn')} <ArrowRight size={18}/>
                   </Link>
                 </div>
               </RevealOnScroll>
 
-              {/* Updates */}
               <RevealOnScroll>
-                <div className="flex items-center gap-3 mb-2"><div className="w-8 h-[3px] rounded-full bg-gold-500"/><p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Updates</p></div>
-                <h2 className="text-xl font-bold text-slate-900 mb-2">Studiengang-Updates</h2>
-                <p className="text-sm text-slate-500 mb-1 max-w-2xl">Alle Neuerungen &ndash; kompakt & transparent.</p>
-                <p className="text-xs text-slate-400 mb-6">Stand: <strong className="text-slate-500">{currentSemester}</strong></p>
-                
+                <div className="flex items-center gap-3 mb-2"><div className="w-8 h-[3px] rounded-full bg-gold-500"/><p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('studium.updates')}</p></div>
+                <h2 className="text-xl font-bold text-slate-900 mb-2">{t('studium.updatesTitle')}</h2>
+                <p className="text-sm text-slate-500 mb-1 max-w-2xl">{t('studium.updatesSub')}</p>
+                <p className="text-xs text-slate-400 mb-6">{t('studium.updatesDate')} <strong className="text-slate-500">{currentSemester}</strong></p>
+
                 {updates.length === 0 ? (
                   <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center text-slate-400">
-                    Keine Updates vorhanden.
+                    {t('studium.noUpdates')}
                   </div>
                 ) : (
                   <div className="bg-white rounded-2xl border border-slate-100 divide-y divide-slate-100 overflow-hidden px-6">

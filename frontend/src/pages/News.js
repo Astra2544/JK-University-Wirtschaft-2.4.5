@@ -6,6 +6,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { RevealOnScroll } from '../components/Animations';
 import { AlertCircle, Clock, User, Pin, Eye, ChevronRight, Bell, Megaphone, AlertTriangle, Info } from 'lucide-react';
 import Marquee from '../components/Marquee';
@@ -20,10 +21,10 @@ const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 // Priority Icons and Styles
 const priorityConfig = {
-  urgent: { icon: AlertTriangle, label: 'Dringend', bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-600', badge: 'bg-red-100 text-red-700' },
-  high: { icon: AlertCircle, label: 'Wichtig', bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-600', badge: 'bg-orange-100 text-orange-700' },
-  medium: { icon: Bell, label: 'Normal', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-600', badge: 'bg-blue-100 text-blue-700' },
-  low: { icon: Info, label: 'Info', bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-600', badge: 'bg-slate-100 text-slate-700' },
+  urgent: { icon: AlertTriangle, bg: 'bg-red-50', border: 'border-red-200', text: 'text-red-600', badge: 'bg-red-100 text-red-700' },
+  high: { icon: AlertCircle, bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-600', badge: 'bg-orange-100 text-orange-700' },
+  medium: { icon: Bell, bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-600', badge: 'bg-blue-100 text-blue-700' },
+  low: { icon: Info, bg: 'bg-slate-50', border: 'border-slate-200', text: 'text-slate-600', badge: 'bg-slate-100 text-slate-700' },
 };
 
 // Color Styles
@@ -36,7 +37,7 @@ const colorConfig = {
   slate: { accent: 'bg-slate-500', light: 'bg-slate-50', text: 'text-slate-600', border: 'border-slate-200' },
 };
 
-function formatDate(dateString) {
+function formatDate(dateString, t) {
   const date = new Date(dateString);
   const now = new Date();
   const diffMs = now - date;
@@ -44,19 +45,21 @@ function formatDate(dateString) {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  if (diffMins < 1) return 'Gerade eben';
-  if (diffMins < 60) return `vor ${diffMins} Min.`;
-  if (diffHours < 24) return `vor ${diffHours} Std.`;
-  if (diffDays < 7) return `vor ${diffDays} Tag${diffDays > 1 ? 'en' : ''}`;
-  
+  if (diffMins < 1) return t('news.justNow');
+  if (diffMins < 60) return t('news.minAgo', { count: diffMins });
+  if (diffHours < 24) return t('news.hoursAgo', { count: diffHours });
+  if (diffDays < 7) return t('news.daysAgo', { count: diffDays });
+
   return date.toLocaleDateString('de-AT', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
 
 function NewsCard({ news, featured = false }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const priority = priorityConfig[news.priority] || priorityConfig.medium;
   const color = colorConfig[news.color] || colorConfig.blue;
   const PriorityIcon = priority.icon;
+  const priorityLabels = { urgent: t('news.urgent'), high: t('news.important'), medium: t('news.normal'), low: t('news.info') };
 
   return (
     <motion.div
@@ -74,11 +77,11 @@ function NewsCard({ news, featured = false }) {
           <div className="flex items-center gap-2 flex-wrap">
             {news.is_pinned && (
               <span className="inline-flex items-center gap-1 text-xs font-semibold text-gold-600 bg-gold-50 px-2 py-1 rounded-full">
-                <Pin size={12} /> Angepinnt
+                <Pin size={12} /> {t('news.pinned')}
               </span>
             )}
             <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2 py-1 rounded-full ${priority.badge}`}>
-              <PriorityIcon size={12} /> {priority.label}
+              <PriorityIcon size={12} /> {priorityLabels[news.priority] || priorityLabels.medium}
             </span>
           </div>
           <div className="flex items-center gap-3 text-xs text-slate-400">
@@ -86,7 +89,7 @@ function NewsCard({ news, featured = false }) {
               <Eye size={12} /> {news.views}
             </span>
             <span className="flex items-center gap-1">
-              <Clock size={12} /> {formatDate(news.published_at || news.created_at)}
+              <Clock size={12} /> {formatDate(news.published_at || news.created_at, t)}
             </span>
           </div>
         </div>
@@ -107,7 +110,7 @@ function NewsCard({ news, featured = false }) {
             onClick={() => setExpanded(!expanded)}
             className="mt-3 text-sm font-medium text-blue-500 hover:text-blue-600 inline-flex items-center gap-1 transition-colors"
           >
-            {expanded ? 'Weniger anzeigen' : 'Mehr lesen'}
+            {expanded ? t('news.showLess') : t('news.readMore')}
             <ChevronRight size={14} className={`transition-transform ${expanded ? 'rotate-90' : ''}`} />
           </button>
         )}
@@ -125,6 +128,7 @@ function NewsCard({ news, featured = false }) {
 }
 
 export default function News() {
+  const { t } = useTranslation();
   const [news, setNews] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -165,20 +169,20 @@ export default function News() {
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-[3px] rounded-full bg-blue-500" />
-              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Aktuelles</p>
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('news.section')}</p>
             </div>
             <h1 data-testid="news-page-title" className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight mb-4">
-              News & Ankündigungen
+              {t('news.title')}
             </h1>
             <p className="text-lg text-slate-500 max-w-xl leading-relaxed">
-              Aktuelle Neuigkeiten, wichtige Ankündigungen und Informationen für dein Studium.
+              {t('news.desc')}
             </p>
           </motion.div>
         </div>
       </section>
 
       <Marquee
-        items={['Immer am Laufenden', 'Wissen, was zählt', 'Dein Studium im Blick', 'Nichts verpassen', 'Informiert durchstarten']}
+        items={t('news.marquee', { returnObjects: true })}
         variant="subtle"
         speed={34}
       />
@@ -188,13 +192,13 @@ export default function News() {
         <div className="max-w-[1120px] mx-auto">
           <RevealOnScroll>
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-medium text-slate-500 mr-2">Filter:</span>
+              <span className="text-sm font-medium text-slate-500 mr-2">{t('news.filter')}</span>
               {[
-                { value: 'all', label: 'Alle' },
-                { value: 'urgent', label: 'Dringend', color: 'red' },
-                { value: 'high', label: 'Wichtig', color: 'orange' },
-                { value: 'medium', label: 'Normal', color: 'blue' },
-                { value: 'low', label: 'Info', color: 'slate' },
+                { value: 'all', label: t('news.all') },
+                { value: 'urgent', label: t('news.urgent'), color: 'red' },
+                { value: 'high', label: t('news.important'), color: 'orange' },
+                { value: 'medium', label: t('news.normal'), color: 'blue' },
+                { value: 'low', label: t('news.info'), color: 'slate' },
               ].map(f => (
                 <button
                   key={f.value}
@@ -232,14 +236,14 @@ export default function News() {
           ) : error ? (
             <div className="text-center py-20">
               <AlertCircle className="mx-auto mb-4 text-red-500" size={48} />
-              <p className="text-slate-500">Fehler beim Laden der News: {error}</p>
+              <p className="text-slate-500">{t('news.loadError')}: {error}</p>
             </div>
           ) : news.length === 0 ? (
             <RevealOnScroll>
               <div className="text-center py-20 bg-slate-50 rounded-2xl border border-slate-100">
                 <Megaphone className="mx-auto mb-4 text-slate-300" size={64} />
-                <p className="text-xl font-semibold text-slate-700 mb-2">Keine News vorhanden</p>
-                <p className="text-slate-500">Aktuell gibt es keine Neuigkeiten. Schau später wieder vorbei!</p>
+                <p className="text-xl font-semibold text-slate-700 mb-2">{t('news.noNews')}</p>
+                <p className="text-slate-500">{t('news.noNewsSub')}</p>
               </div>
             </RevealOnScroll>
           ) : (
@@ -250,7 +254,7 @@ export default function News() {
                   <RevealOnScroll>
                     <div className="flex items-center gap-2 mb-4">
                       <Pin size={16} className="text-gold-500" />
-                      <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">Angepinnte Beiträge</h2>
+                      <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider">{t('news.pinnedPosts')}</h2>
                     </div>
                   </RevealOnScroll>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
@@ -268,7 +272,7 @@ export default function News() {
                 <div>
                   {pinnedNews.length > 0 && (
                     <RevealOnScroll>
-                      <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Weitere News</h2>
+                      <h2 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">{t('news.moreNews')}</h2>
                     </RevealOnScroll>
                   )}
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -283,7 +287,7 @@ export default function News() {
 
               {filteredNews.length === 0 && (
                 <div className="text-center py-12 bg-slate-50 rounded-2xl">
-                  <p className="text-slate-500">Keine News mit diesem Filter gefunden.</p>
+                  <p className="text-slate-500">{t('news.noFilter')}</p>
                 </div>
               )}
             </>

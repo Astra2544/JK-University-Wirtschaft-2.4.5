@@ -19,17 +19,19 @@
 
 import React from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { Instagram, Linkedin, Mail, ExternalLink } from 'lucide-react';
 
 const IMG_V = `?v=${process.env.REACT_APP_BUILD_TIME || Date.now()}`;
 
 // Rechtliche Links für den Footer
 const rechtlicheLinks = [
-  { label: 'Impressum', path: '/impressum' },
-  { label: 'Datenschutz', path: '/datenschutz' },
+  { labelKey: 'footer.impressum', path: '/impressum' },
+  { labelKey: 'footer.datenschutz', path: '/datenschutz' },
 ];
 
 export default function Footer() {
+  const { t } = useTranslation();
   return (
     <footer data-testid="footer" className="bg-slate-900 text-white mt-auto">
       {/* Gradient-Linie oben (Uni-Farben: Blau + Gold) */}
@@ -52,13 +54,13 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-sm text-slate-400 leading-relaxed max-w-xs">
-              Deine offiziell gewählte Studienvertretung für wirtschaftliche Studiengänge an der Johannes Kepler Universität Linz.
+              {t('footer.desc')}
             </p>
           </div>
           
           {/* Mittlere Spalte: Rechtliches */}
           <div className="md:col-span-3">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Rechtliches</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">{t('footer.rechtliches')}</p>
             <div className="flex flex-col gap-2">
               {rechtlicheLinks.map(l => (
                 <Link 
@@ -67,7 +69,7 @@ export default function Footer() {
                   data-testid={`footer-link-${l.path.replace('/', '')}`}
                   className="text-sm text-slate-400 hover:text-gold-500 transition-colors"
                 >
-                  {l.label}
+                  {t(l.labelKey)}
                 </Link>
               ))}
             </div>
@@ -75,7 +77,7 @@ export default function Footer() {
           
           {/* Rechte Spalte: Kontakt + Social Media */}
           <div className="md:col-span-4">
-            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">Kontakt</p>
+            <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider mb-4">{t('footer.kontakt')}</p>
             <div className="flex flex-col gap-2.5 text-sm text-slate-400">
               <a href="mailto:wirtschaft@oeh.jku.at" data-testid="footer-email" className="hover:text-blue-500 transition-colors flex items-center gap-2">
                 <Mail size={14}/>wirtschaft@oeh.jku.at
@@ -96,7 +98,7 @@ export default function Footer() {
         {/* Copyright + Entwickler-Credit */}
         <div className="mt-12 pt-6 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <span className="text-xs text-slate-500">
-            &copy; {new Date().getFullYear()} ÖH Wirtschaft &ndash; JKU Linz &middot; Deine Stimme. Dein Studium. Deine Vertretung.
+            &copy; {new Date().getFullYear()} ÖH Wirtschaft &ndash; JKU Linz &middot; {t('footer.slogan')}
           </span>
           <a 
             href="https://astra-capital.eu" 

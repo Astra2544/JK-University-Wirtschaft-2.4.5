@@ -5,6 +5,7 @@
  */
 
 import React, { useState, useRef } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion } from 'framer-motion';
 import { RevealOnScroll } from '../components/Animations';
 import {
@@ -52,28 +53,6 @@ const STUDIUM_OPTIONS = [
     'ULG Tourismusmanagement',
     'ULG Applied Business Excellence',
   ]},
-];
-
-const ANLIEGEN_OPTIONS = [
-  'Mitmachen bei der Studienvertretung',
-  'Beitritt WhatsApp-Community',
-  'Frage zu Lehrveranstaltungen',
-  'Problem bei Lehrveranstaltungen',
-  'Problem mit Lehrenden',
-  'Problem mit LV-Bewertungstool',
-  'Frage zu Studienplaner',
-  'Sonstiges',
-];
-
-const SEMESTER_OPTIONS = [
-  'Ich studiere noch nicht',
-  '1. Semester',
-  '2. Semester',
-  '3. Semester',
-  '4. Semester',
-  '5. Semester',
-  '6. Semester oder höher',
-  'Ich habe mein Studium abgeschlossen',
 ];
 
 // ─── KALENDER-IMPORT LINKS ─────────────────────────────────────────────────
@@ -130,6 +109,7 @@ function SelectWrap({ children }) {
 }
 
 export default function Contact() {
+  const { t } = useTranslation();
   const fileRef = useRef(null);
   const [fd, setFd] = useState({
     name: '', email: '', studium: '', anliegen: '',
@@ -142,6 +122,9 @@ export default function Contact() {
   const [status, setStatus] = useState({ type: '', message: '' });
   const [sending, setSending] = useState(false);
   const [touched, setTouched] = useState({});
+
+  const anliegenOptions = t('contact.anliegenOptions', { returnObjects: true });
+  const semesterOptions = t('contact.semesterOptions', { returnObjects: true });
 
   const set = (e) => {
     const { name, value, type, checked } = e.target;
@@ -165,11 +148,11 @@ export default function Contact() {
     setFileError('');
     if (!f) { setFile(null); return; }
     if (!['application/pdf','image/jpeg','image/png'].includes(f.type)) {
-      setFileError('Nur PDF, JPG und PNG Dateien sind erlaubt.');
+      setFileError(t('contact.fileErrorType'));
       setFile(null); return;
     }
     if (f.size > 10 * 1024 * 1024) {
-      setFileError('Die Datei darf maximal 10 MB groß sein.');
+      setFileError(t('contact.fileErrorSize'));
       setFile(null); return;
     }
     setFile(f);
@@ -184,11 +167,11 @@ export default function Contact() {
     setFileError('');
     if (!f) { setFile(null); return; }
     if (!['application/pdf','image/jpeg','image/png'].includes(f.type)) {
-      setFileError('Nur PDF, JPG und PNG Dateien sind erlaubt.');
+      setFileError(t('contact.fileErrorType'));
       setFile(null); return;
     }
     if (f.size > 10 * 1024 * 1024) {
-      setFileError('Die Datei darf maximal 10 MB groß sein.');
+      setFileError(t('contact.fileErrorSize'));
       setFile(null); return;
     }
     setFile(f);
@@ -214,14 +197,14 @@ export default function Contact() {
     setDragging(false);
   };
 
-  const isMitmachen = fd.anliegen === 'Mitmachen bei der Studienvertretung';
-  const isWhatsApp = fd.anliegen === 'Beitritt WhatsApp-Community';
-  const isFrageLV = fd.anliegen === 'Frage zu Lehrveranstaltungen';
-  const isProblemLV = fd.anliegen === 'Problem bei Lehrveranstaltungen';
-  const isProblemLehrende = fd.anliegen === 'Problem mit Lehrenden';
-  const isProblemBewertung = fd.anliegen === 'Problem mit LV-Bewertungstool';
-  const isFragePlaner = fd.anliegen === 'Frage zu Studienplaner';
-  const isSonstiges = fd.anliegen === 'Sonstiges';
+  const isMitmachen = fd.anliegen === anliegenOptions[0];
+  const isWhatsApp = fd.anliegen === anliegenOptions[1];
+  const isFrageLV = fd.anliegen === anliegenOptions[2];
+  const isProblemLV = fd.anliegen === anliegenOptions[3];
+  const isProblemLehrende = fd.anliegen === anliegenOptions[4];
+  const isProblemBewertung = fd.anliegen === anliegenOptions[5];
+  const isFragePlaner = fd.anliegen === anliegenOptions[6];
+  const isSonstiges = fd.anliegen === anliegenOptions[7];
   const needsLvName = isFrageLV || isProblemLV;
   const needsDesc = isFrageLV || isProblemLV || isProblemLehrende || isProblemBewertung || isFragePlaner || isSonstiges;
 
@@ -262,27 +245,27 @@ export default function Contact() {
       const res = await fetch(`${BACKEND_URL}/api/contact`, { method: 'POST', body });
       const data = await res.json();
       if (res.ok) {
-        setStatus({ type: 'success', message: 'Deine Anfrage wurde erfolgreich gesendet! Wir melden uns bei dir.' });
+        setStatus({ type: 'success', message: t('contact.success') });
         setFd({ name:'', email:'', studium:'', anliegen:'', semester:'', nachricht:'',
           lvName:'', beschreibung:'', lehrpersonName:'', lehrveranstaltung:'', datenschutz:false });
         setFile(null); setTouched({});
         if (fileRef.current) fileRef.current.value = '';
       } else {
-        throw new Error(data.detail || 'Fehler beim Senden');
+        throw new Error(data.detail || t('contact.errorSend'));
       }
     } catch (err) {
-      setStatus({ type: 'error', message: err.message || 'Ein Fehler ist aufgetreten. Bitte versuche es später erneut.' });
+      setStatus({ type: 'error', message: err.message || t('contact.errorGeneric') });
     } finally { setSending(false); }
   };
 
-  const descLabel = (isProblemLV || isProblemBewertung || isFragePlaner) ? 'Problembeschreibung' : 'Beschreibung';
+  const descLabel = (isProblemLV || isProblemBewertung || isFragePlaner) ? t('contact.placeholders.problemLabel') : t('contact.placeholders.descLabel');
   const descPlaceholder =
-    isProblemLV ? 'Beschreibe das Problem mit der Lehrveranstaltung...'
-    : isProblemLehrende ? 'Beschreibe das Problem...'
-    : isProblemBewertung ? 'Beschreibe das Problem mit dem Bewertungstool...'
-    : isFragePlaner ? 'Beschreibe dein Problem oder deine Frage zum Studienplaner...'
-    : isFrageLV ? 'Beschreibe deine Frage zur Lehrveranstaltung...'
-    : 'Beschreibe dein Anliegen...';
+    isProblemLV ? t('contact.placeholders.problemLV')
+    : isProblemLehrende ? t('contact.placeholders.problemLehrende')
+    : isProblemBewertung ? t('contact.placeholders.problemBewertung')
+    : isFragePlaner ? t('contact.placeholders.problemPlaner')
+    : isFrageLV ? t('contact.placeholders.frageLV')
+    : t('contact.placeholders.sonstiges');
 
   return (
     <motion.div variants={pv} initial="initial" animate="animate" exit="exit">
@@ -296,13 +279,13 @@ export default function Contact() {
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-[3px] rounded-full bg-blue-500" />
-              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Wir sind für dich da</p>
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('contact.section')}</p>
             </div>
             <h1 data-testid="contact-page-title" className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight mb-4">
-              Kontakt
+              {t('contact.title')}
             </h1>
             <p className="text-lg text-slate-500 max-w-xl leading-relaxed">
-              Du hast Fragen, Anregungen oder brauchst Hilfe? Wir freuen uns von dir zu hören!
+              {t('contact.desc')}
             </p>
           </motion.div>
         </div>
@@ -317,8 +300,8 @@ export default function Contact() {
             {/* ═══ NEW CONTACT FORM ═══ */}
             <RevealOnScroll className="lg:col-span-3">
               <div className="bg-white rounded-2xl p-6 md:p-8 border border-slate-100 h-full">
-                <h2 className="text-xl font-bold text-slate-900 mb-1">Kontaktformular</h2>
-                <p className="text-sm text-slate-500 mb-6">Fülle das Formular aus und wir kümmern uns um dein Anliegen.</p>
+                <h2 className="text-xl font-bold text-slate-900 mb-1">{t('contact.formTitle')}</h2>
+                <p className="text-sm text-slate-500 mb-6">{t('contact.formDesc')}</p>
 
                 {status.message && (
                   <motion.div
@@ -339,26 +322,26 @@ export default function Contact() {
                   {/* Name + Email */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Name <span className="text-red-500">*</span></label>
-                      <input type="text" name="name" value={fd.name} onChange={set} className={inputCls} placeholder="Dein vollständiger Name" />
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('contact.name')} <span className="text-red-500">*</span></label>
+                      <input type="text" name="name" value={fd.name} onChange={set} className={inputCls} placeholder={t('contact.namePh')} />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-1.5">E-Mail <span className="text-red-500">*</span></label>
-                      <input type="email" name="email" value={fd.email} onChange={set} className={inputCls} placeholder="deine@email.at" />
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('contact.email')} <span className="text-red-500">*</span></label>
+                      <input type="email" name="email" value={fd.email} onChange={set} className={inputCls} placeholder={t('contact.emailPh')} />
                       {touched.email && fd.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fd.email) && (
-                        <p className="text-xs text-red-500 mt-1">Bitte gib eine gültige E-Mail-Adresse ein.</p>
+                        <p className="text-xs text-red-500 mt-1">{t('contact.emailError')}</p>
                       )}
                     </div>
                   </div>
 
                   {/* Studium */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Studium <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('contact.studium')} <span className="text-red-500">*</span></label>
                     <SelectWrap>
                       <select name="studium" value={fd.studium} onChange={set} className={selectCls(fd.studium)}>
-                        <option value="" disabled>Studiengang auswählen</option>
+                        <option value="" disabled>{t('contact.studiumPh')}</option>
                         {STUDIUM_OPTIONS.map(g => (
-                          <optgroup key={g.group} label={g.group}>
+                          <optgroup key={g.group} label={t(`contact.studiumGroups.${g.group === 'Allgemein' ? 'allgemein' : g.group === 'Bachelor' ? 'bachelor' : g.group === 'Master' ? 'master' : g.group === 'MBA' ? 'mba' : 'universitaetslehrgaenge'}`)}>
                             {g.items.map(i => <option key={i} value={i}>{i}</option>)}
                           </optgroup>
                         ))}
@@ -368,11 +351,11 @@ export default function Contact() {
 
                   {/* Anliegen */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Anliegen <span className="text-red-500">*</span></label>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('contact.anliegen')} <span className="text-red-500">*</span></label>
                     <SelectWrap>
                       <select name="anliegen" value={fd.anliegen} onChange={setAnliegen} className={selectCls(fd.anliegen)}>
-                        <option value="" disabled>Was können wir für dich tun?</option>
-                        {ANLIEGEN_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                        <option value="" disabled>{t('contact.anliegenPh')}</option>
+                        {anliegenOptions.map(o => <option key={o} value={o}>{o}</option>)}
                       </select>
                     </SelectWrap>
                   </div>
@@ -389,18 +372,18 @@ export default function Contact() {
                       {isMitmachen && (
                         <>
                           <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Semester <span className="text-red-500">*</span></label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('contact.semester')} <span className="text-red-500">*</span></label>
                             <SelectWrap>
                               <select name="semester" value={fd.semester} onChange={set} className={selectCls(fd.semester)}>
-                                <option value="" disabled>Semester auswählen</option>
-                                {SEMESTER_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                                <option value="" disabled>{t('contact.semesterPh')}</option>
+                                {semesterOptions.map(o => <option key={o} value={o}>{o}</option>)}
                               </select>
                             </SelectWrap>
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Nachricht <span className="text-slate-400 font-normal">(optional)</span></label>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('contact.nachricht')} <span className="text-slate-400 font-normal">{t('contact.nachrichtOpt')}</span></label>
                             <textarea name="nachricht" value={fd.nachricht} onChange={set} rows={4}
-                              className={`${inputCls} resize-none`} placeholder="Möchtest du uns noch etwas mitteilen?" />
+                              className={`${inputCls} resize-none`} placeholder={t('contact.nachrichtPh')} />
                           </div>
                         </>
                       )}
@@ -408,8 +391,8 @@ export default function Contact() {
                       {/* WhatsApp */}
                       {isWhatsApp && (
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1.5">Studienbestätigung <span className="text-red-500">*</span></label>
-                          <p className="text-xs text-slate-500 mb-2">Lade deine Inskriptions- oder Studienbestätigung hoch (PDF, JPG oder PNG, max. 10 MB).</p>
+                          <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('contact.studienbestätigung')} <span className="text-red-500">*</span></label>
+                          <p className="text-xs text-slate-500 mb-2">{t('contact.fileUploadDesc')}</p>
                           <div
                             onClick={() => !file && fileRef.current?.click()}
                             onDrop={onDrop}
@@ -438,8 +421,8 @@ export default function Contact() {
                             ) : (
                               <div className="text-slate-400">
                                 <Upload size={24} className="mx-auto mb-2" />
-                                <p className="text-sm font-medium">Datei auswählen oder hierher ziehen</p>
-                                <p className="text-xs mt-1">PDF, JPG, PNG bis 10 MB</p>
+                                <p className="text-sm font-medium">{t('contact.fileSelect')}</p>
+                                <p className="text-xs mt-1">{t('contact.fileFormats')}</p>
                               </div>
                             )}
                           </div>
@@ -450,8 +433,8 @@ export default function Contact() {
                       {/* LV Name field */}
                       {needsLvName && (
                         <div>
-                          <label className="block text-sm font-medium text-slate-700 mb-1.5">Lehrveranstaltungsname <span className="text-red-500">*</span></label>
-                          <input type="text" name="lvName" value={fd.lvName} onChange={set} className={inputCls} placeholder="Name der Lehrveranstaltung" />
+                          <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('contact.lvName')} <span className="text-red-500">*</span></label>
+                          <input type="text" name="lvName" value={fd.lvName} onChange={set} className={inputCls} placeholder={t('contact.lvNamePh')} />
                         </div>
                       )}
 
@@ -459,12 +442,12 @@ export default function Contact() {
                       {isProblemLehrende && (
                         <>
                           <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Name der Lehrperson <span className="text-red-500">*</span></label>
-                            <input type="text" name="lehrpersonName" value={fd.lehrpersonName} onChange={set} className={inputCls} placeholder="Name der Lehrperson" />
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('contact.lehrpersonName')} <span className="text-red-500">*</span></label>
+                            <input type="text" name="lehrpersonName" value={fd.lehrpersonName} onChange={set} className={inputCls} placeholder={t('contact.lehrpersonNamePh')} />
                           </div>
                           <div>
-                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Lehrveranstaltung <span className="text-slate-400 font-normal">(optional)</span></label>
-                            <input type="text" name="lehrveranstaltung" value={fd.lehrveranstaltung} onChange={set} className={inputCls} placeholder="Name der Lehrveranstaltung" />
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('contact.lehrveranstaltung')} <span className="text-slate-400 font-normal">{t('contact.nachrichtOpt')}</span></label>
+                            <input type="text" name="lehrveranstaltung" value={fd.lehrveranstaltung} onChange={set} className={inputCls} placeholder={t('contact.lehrveranstaltungPh')} />
                           </div>
                         </>
                       )}
@@ -486,7 +469,7 @@ export default function Contact() {
                       <input type="checkbox" name="datenschutz" checked={fd.datenschutz} onChange={set}
                         className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500 focus:ring-2 cursor-pointer" />
                       <span className="text-sm text-slate-600 leading-relaxed group-hover:text-slate-800 transition-colors">
-                        Ich stimme der Verarbeitung meiner Daten zur Weiterleitung und Bearbeitung meiner Anfrage zu. <span className="text-red-500">*</span>
+                        {t('contact.datenschutz')} <span className="text-red-500">*</span>
                       </span>
                     </label>
                   </div>
@@ -495,7 +478,7 @@ export default function Contact() {
                   <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl p-4">
                     <Info size={16} className="text-blue-500 mt-0.5 shrink-0" />
                     <p className="text-xs text-blue-600 leading-relaxed">
-                      Die Bearbeitung dauert üblicherweise bis zu zwei Tage (inkl. Wochenenden und Feiertagen). In komplexeren Fällen kann es vereinzelt etwas länger dauern. Wir sehen deine Anfrage auf jeden Fall – zusätzliche Nachrichten (z.&nbsp;B. über Instagram) helfen leider nicht, den Prozess zu beschleunigen.
+                      {t('contact.processingInfo')}
                     </p>
                   </div>
 
@@ -512,10 +495,10 @@ export default function Contact() {
                           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                           className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                         />
-                        Wird gesendet...
+                        {t('contact.sending')}
                       </>
                     ) : (
-                      <><Send size={18} /> Anfrage absenden</>
+                      <><Send size={18} /> {t('contact.submit')}</>
                     )}
                   </button>
                 </form>
@@ -528,7 +511,7 @@ export default function Contact() {
 
                 {/* Quick Contact */}
                 <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
-                  <h3 className="font-bold text-lg mb-4">Direkter Kontakt</h3>
+                  <h3 className="font-bold text-lg mb-4">{t('contact.directContact')}</h3>
                   <div className="space-y-3">
                     <a href="mailto:wirtschaft@oeh.jku.at" className="flex items-center gap-3 text-blue-100 hover:text-white transition-colors">
                       <Mail size={18} />
@@ -536,7 +519,7 @@ export default function Contact() {
                     </a>
                     <div className="flex items-center gap-3 text-blue-100">
                       <MapPin size={18} />
-                      <span className="text-sm">Keplergebäude, JKU Linz</span>
+                      <span className="text-sm">{t('contact.location')}</span>
                     </div>
                   </div>
 
@@ -565,7 +548,7 @@ export default function Contact() {
                       </div>
                       <div>
                         <p className="font-semibold text-slate-900 text-sm">ÖH JKU</p>
-                        <p className="text-xs text-slate-400">Hauptvertretung</p>
+                        <p className="text-xs text-slate-400">{t('contact.hauptvertretung')}</p>
                       </div>
                     </div>
                     <ExternalLink size={16} className="text-slate-300 group-hover:text-blue-500 transition-colors" />
@@ -584,26 +567,23 @@ export default function Contact() {
                   <Clock size={24} className="text-blue-500" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">Sprechstunden</h2>
-                  <p className="text-sm text-slate-500">Persönliche Beratung vor Ort oder online</p>
+                  <h2 className="text-xl font-bold text-slate-900">{t('contact.sprechstunden')}</h2>
+                  <p className="text-sm text-slate-500">{t('contact.sprechstundenSub')}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-[15px] text-slate-600 leading-relaxed mb-4">
-                    Über den folgenden Button kannst du dir ganz bequem einen Termin für eine Sprechstunde buchen –
-                    egal ob vor Ort oder online via Zoom. Eine Buchung ist bis spätestens 24 Stunden vor dem
-                    gewünschten Termin möglich.
+                    {t('contact.sprechstundenDesc1')}
                   </p>
                   <p className="text-[15px] text-slate-600 leading-relaxed mb-4">
-                    Die Beratung ist natürlich <strong className="text-slate-800">kostenlos</strong>, da wir alle
-                    ehrenamtlich für dich im Einsatz sind.
+                    {t('contact.sprechstundenDesc2')}
                   </p>
                   <div className="bg-gold-50 border border-gold-200 rounded-xl p-4 mb-5">
                     <p className="text-sm text-gold-700 font-medium flex items-center gap-2">
                       <AlertCircle size={16} />
-                      In der vorlesungsfreien Zeit finden keine Sprechstunden statt!
+                      {t('contact.sprechstundenWarning')}
                     </p>
                   </div>
                   <a
@@ -613,24 +593,17 @@ export default function Contact() {
                     data-testid="sprechstunde-btn"
                     className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-full transition-all hover:shadow-lg hover:shadow-blue-500/20"
                   >
-                    <Calendar size={16} /> Sprechstunde buchen <ArrowUpRight size={14} />
+                    <Calendar size={16} /> {t('contact.sprechstundenBtn')} <ArrowUpRight size={14} />
                   </a>
                 </div>
 
                 <div className="bg-slate-50 rounded-xl p-5">
                   <h4 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
                     <MessageCircle size={18} className="text-blue-500" />
-                    Was wir für dich tun können
+                    {t('contact.whatWeCanDo')}
                   </h4>
                   <ul className="space-y-2.5">
-                    {[
-                      'Fragen zu Prüfungen & Anmeldungen',
-                      'Studienplanung & Kurswahl',
-                      'Probleme mit Professor:innen',
-                      'Anrechnungen & Wechsel',
-                      'Stipendien & Förderungen',
-                      'Allgemeine Studienberatung'
-                    ].map((item, i) => (
+                    {t('contact.servicesList', { returnObjects: true }).map((item, i) => (
                       <li key={i} className="flex items-start gap-2 text-sm text-slate-600">
                         <span className="w-1.5 h-1.5 rounded-full bg-blue-500 mt-1.5 shrink-0" />
                         {item}
@@ -650,37 +623,32 @@ export default function Contact() {
                   <MessageCircle size={24} className="text-green-500" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">WhatsApp-Community</h2>
-                  <p className="text-sm text-slate-500">Vernetze dich mit anderen Studierenden</p>
+                  <h2 className="text-xl font-bold text-slate-900">{t('contact.whatsapp')}</h2>
+                  <p className="text-sm text-slate-500">{t('contact.whatsappSub')}</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-[15px] text-slate-600 leading-relaxed mb-3">
-                    Um dich im Studium bestmöglich zu unterstützen und den Austausch unter Studierenden zu
-                    erleichtern, betreiben wir als deine Vertretung eine WhatsApp-Community für alle
-                    wirtschaftswissenschaftlichen Studiengänge an der JKU.
+                    {t('contact.whatsappDesc1')}
                   </p>
                   <p className="text-[15px] text-slate-600 leading-relaxed">
-                    In den jeweiligen Studiengruppen kannst du dich mit Kolleg:innen aus deinem Studium
-                    vernetzen, Fragen stellen, Informationen austauschen und erhältst wichtige Hinweise
-                    rund um dein Studium, Prüfungen, Services und Veranstaltungen.
+                    {t('contact.whatsappDesc2')}
                   </p>
                 </div>
 
                 <div className="space-y-3">
                   <div className="bg-slate-50 rounded-xl p-4">
-                    <p className="text-sm font-semibold text-slate-700 mb-1">Beitritt zur Community</p>
+                    <p className="text-sm font-semibold text-slate-700 mb-1">{t('contact.whatsappJoinTitle')}</p>
                     <p className="text-xs text-slate-500">
-                      Schreib eine kurze Nachricht an wirtschaft@oeh.jku.at und sende deine
-                      Inskriptionsbestätigung mit. Nach der Prüfung erhältst du den Einladungslink.
+                      {t('contact.whatsappJoinDesc')}
                     </p>
                   </div>
                   <div className="bg-slate-50 rounded-xl p-4">
-                    <p className="text-sm font-semibold text-slate-700 mb-1">Hinweis für Erstsemestrige</p>
+                    <p className="text-sm font-semibold text-slate-700 mb-1">{t('contact.whatsappFreshmenTitle')}</p>
                     <p className="text-xs text-slate-500">
-                      Studierende im ersten Semester erhalten den Einladungslink per E-Mail vor Semesterbeginn.
+                      {t('contact.whatsappFreshmenDesc')}
                     </p>
                   </div>
                 </div>
@@ -696,19 +664,16 @@ export default function Contact() {
                   <Calendar size={24} className="text-gold-500" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">Kalender abonnieren</h2>
-                  <p className="text-sm text-slate-500">Events direkt in deinen Kalender</p>
+                  <h2 className="text-xl font-bold text-slate-900">{t('contact.calendar')}</h2>
+                  <p className="text-sm text-slate-500">{t('contact.calendarSub')}</p>
                 </div>
               </div>
 
               <p className="text-[15px] text-slate-600 leading-relaxed mb-4">
-                Mit dem Kalender der ÖH Wirtschaft kannst du Veranstaltungen der ÖH und Partner an der JKU
-                direkt in deinen eigenen Kalender übernehmen. Von Workshops und Info-Veranstaltungen bis hin
-                zu Partys – alle Events werden automatisch synchronisiert. So behältst du jederzeit den
-                Überblick und verpasst keine für dich relevanten Veranstaltungen an der JKU!
+                {t('contact.calendarDesc')}
               </p>
 
-              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Kalender importieren</p>
+              <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">{t('contact.calendarImport')}</p>
               <div className="flex flex-wrap gap-2">
                 {calLinks.map(l => (
                   <a
@@ -727,7 +692,7 @@ export default function Contact() {
           </RevealOnScroll>
 
           <Marquee
-            items={['Wir hören zu', 'Kein Problem zu klein', 'Immer für dich da', 'Deine Fragen, unsere Antworten', 'Zusammen finden wir eine Lösung']}
+            items={t('contact.marquee', { returnObjects: true })}
             variant="subtle"
             speed={34}
             className="rounded-2xl mb-6"
@@ -741,8 +706,8 @@ export default function Contact() {
                   <HelpCircle size={24} className="text-blue-500" />
                 </div>
                 <div>
-                  <h2 className="text-xl font-bold text-slate-900">Häufig gestellte Fragen</h2>
-                  <p className="text-sm text-slate-500">Antworten auf die wichtigsten Fragen</p>
+                  <h2 className="text-xl font-bold text-slate-900">{t('contact.faq')}</h2>
+                  <p className="text-sm text-slate-500">{t('contact.faqSub')}</p>
                 </div>
               </div>
 

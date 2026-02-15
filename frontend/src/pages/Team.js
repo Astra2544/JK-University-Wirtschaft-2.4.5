@@ -18,6 +18,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { RevealOnScroll } from '../components/Animations';
 import { Mail, ArrowRight, Globe, Camera, PartyPopper, Newspaper, Users, Award, UserPlus } from 'lucide-react';
 import Marquee from '../components/Marquee';
@@ -82,15 +83,6 @@ const weitereMitglieder = [
 ];
 
 // ─── VORTEILE DER MITARBEIT ────────────────────────────────────────────────
-const benefits = [
-  { t: 'ECTS pro aktivem Semester', d: 'Ohne Klausur, anerkannt für echte Praxis und Ehrenamt.' },
-  { t: 'Mitreden, wenn\'s zählt', d: 'Curricula und Prüfungsregelungen mitgestalten, in Gremien mitentscheiden.' },
-  { t: 'Eigene Projekte mit Budget', d: 'Von Events bis Services – planen, verhandeln, umsetzen.' },
-  { t: 'Karriere-Plus', d: 'Tätigkeitsbericht und Bestätigung für CV/LinkedIn mit starken Referenzen.' },
-  { t: 'Skill-Turbo', d: 'Projektmanagement, Kommunikation, Verhandeln, Teamführung – learning by doing.' },
-  { t: 'Einblicke hinter die Kulissen', d: 'Mentoring, Onboarding, flexible Arbeit – Prüfungsphasen werden berücksichtigt.' },
-  { t: 'Praktische Vorteile', d: 'ÖH E-Mailadresse, Zugang zu Ressourcen/Räumen und eine verlässliche Community.' },
-];
 
 // ─── INITIALEN-KOMPONENTE ──────────────────────────────────────────────────
 function Initials({ name, className = '' }) {
@@ -99,7 +91,7 @@ function Initials({ name, className = '' }) {
 }
 
 // ─── BEREICHSLEITER KARTE (groß) ───────────────────────────────────────────
-function BereichsleiterCard({ person, index }) {
+function BereichsleiterCard({ person, index, t }) {
   const colorStyles = {
     purple: {
       bg: 'bg-gradient-to-br from-purple-50 to-purple-100/50',
@@ -160,7 +152,7 @@ function BereichsleiterCard({ person, index }) {
           </div>
           <p className="text-base font-bold text-slate-900 mb-0.5">{person.name}</p>
           <Link to="/contact" className="text-xs text-slate-400 hover:text-blue-500 transition-colors flex items-center gap-1">
-            <Mail size={11} className="shrink-0"/>Kontaktieren
+            <Mail size={11} className="shrink-0"/>{t('team.contact')}
           </Link>
         </div>
       </div>
@@ -169,7 +161,7 @@ function BereichsleiterCard({ person, index }) {
 }
 
 // ─── STELLVERTRETER KARTE (mittel) ─────────────────────────────────────────
-function StellvertreterCard({ person, index }) {
+function StellvertreterCard({ person, index, t }) {
   return (
     <RevealOnScroll delay={index * 0.04}>
       <div
@@ -191,7 +183,7 @@ function StellvertreterCard({ person, index }) {
           <p className="text-sm font-semibold text-slate-900 truncate">{person.name}</p>
           <p className="text-xs text-slate-500 mb-1">{person.role}</p>
           <Link to="/contact" className="text-[11px] text-slate-300 hover:text-blue-500 transition-colors flex items-center gap-1 truncate">
-            <Mail size={10} className="shrink-0"/>Kontaktieren
+            <Mail size={10} className="shrink-0"/>{t('team.contact')}
           </Link>
         </div>
       </div>
@@ -222,6 +214,8 @@ function KleineMitgliederCard({ person, index }) {
 }
 
 export default function Team() {
+  const { t } = useTranslation();
+  const benefits = t('team.benefits', { returnObjects: true });
   return (
     <motion.div variants={pv} initial="initial" animate="animate" exit="exit">
       {/* Header */}
@@ -231,18 +225,18 @@ export default function Team() {
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-[3px] rounded-full bg-gold-500" />
-              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Wir sind für dich da</p>
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('team.section')}</p>
             </div>
-            <h1 data-testid="team-page-title" className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight mb-4">Dein Team</h1>
+            <h1 data-testid="team-page-title" className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight mb-4">{t('team.title')}</h1>
             <p className="text-lg text-slate-500 max-w-xl leading-relaxed">
-              Wir sind deine Ansprechpartner:innen und stehen dir bei Fragen oder Problemen im Studium jederzeit zur Seite!
+              {t('team.desc')}
             </p>
           </motion.div>
         </div>
       </section>
 
       <Marquee
-        items={['Machen statt reden', 'Mit Leidenschaft dabei', 'Ehrenamtlich & stolz drauf', 'Dein Erfolg ist unser Antrieb', 'Gemeinsam unschlagbar']}
+        items={t('team.marquee', { returnObjects: true })}
         variant="dark"
         speed={32}
       />
@@ -253,8 +247,8 @@ export default function Team() {
           <RevealOnScroll>
             <div data-testid="team-lead-card" className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-2xl p-6 md:p-8 flex flex-col sm:flex-row items-center gap-6">
               <div className="w-20 h-20 rounded-2xl bg-white/20 overflow-hidden shrink-0">
-                <img 
-                  src={`${vorsitzender.image}${IMG_V}`} 
+                <img
+                  src={`${vorsitzender.image}${IMG_V}`}
                   alt={vorsitzender.name}
                   className="w-full h-full object-cover"
                 />
@@ -263,7 +257,7 @@ export default function Team() {
                 <p className="text-gold-400 text-xs font-bold uppercase tracking-wider mb-1">{vorsitzender.role}</p>
                 <p className="text-2xl font-bold text-white mb-1">{vorsitzender.name}</p>
                 <Link to="/contact" className="text-sm text-blue-100 hover:text-white transition-colors flex items-center gap-1.5 justify-center sm:justify-start">
-                  <Mail size={14}/>Kontaktieren
+                  <Mail size={14}/>{t('team.contact')}
                 </Link>
               </div>
             </div>
@@ -275,11 +269,11 @@ export default function Team() {
       <section data-testid="team-area-leads" className="px-5 pb-12">
         <div className="max-w-[1120px] mx-auto">
           <RevealOnScroll>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-5">Bereichsleitung</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-5">{t('team.areaLeads')}</p>
           </RevealOnScroll>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {bereichsleiter.map((person, i) => (
-              <BereichsleiterCard key={person.name} person={person} index={i} />
+              <BereichsleiterCard key={person.name} person={person} index={i} t={t} />
             ))}
           </div>
         </div>
@@ -289,11 +283,11 @@ export default function Team() {
       <section data-testid="team-stellvertreter-section" className="px-5 pb-12">
         <div className="max-w-[1120px] mx-auto">
           <RevealOnScroll>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-5">Team</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-5">{t('team.teamLabel')}</p>
           </RevealOnScroll>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3">
             {stellvertreter.map((person, i) => (
-              <StellvertreterCard key={person.name} person={person} index={i} />
+              <StellvertreterCard key={person.name} person={person} index={i} t={t} />
             ))}
           </div>
         </div>
@@ -303,7 +297,7 @@ export default function Team() {
       <section data-testid="team-weitere-section" className="px-5 pb-12">
         <div className="max-w-[1120px] mx-auto">
           <RevealOnScroll>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-5">Weitere Mitglieder</p>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-5">{t('team.moreMembers')}</p>
           </RevealOnScroll>
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-2">
             {weitereMitglieder.map((person, i) => (
@@ -321,16 +315,16 @@ export default function Team() {
               <div className="w-20 h-20 mx-auto mb-6 rounded-2xl bg-white border-2 border-gold-300 flex items-center justify-center shadow-lg">
                 <UserPlus size={38} className="text-gold-600" strokeWidth={1.5} />
               </div>
-              <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">und du?</h3>
+              <h3 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3">{t('team.andYou')}</h3>
               <p className="text-slate-600 mb-6 max-w-md mx-auto">
-                Werde Teil des Teams und gestalte die ÖH Wirtschaft aktiv mit!
+                {t('team.andYouDesc')}
               </p>
               <Link
                 to="/contact"
                 data-testid="team-und-du-btn"
                 className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-600 hover:to-amber-600 px-6 py-3 rounded-full transition-all hover:shadow-lg hover:shadow-gold-500/30"
               >
-                Jetzt mitmachen <ArrowRight size={15} />
+                {t('team.joinNow')} <ArrowRight size={15} />
               </Link>
             </div>
           </RevealOnScroll>
@@ -343,14 +337,13 @@ export default function Team() {
           <RevealOnScroll>
             <div className="flex items-center gap-3 mb-5">
               <div className="w-8 h-[3px] rounded-full bg-blue-500" />
-              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Warum mitmachen?</p>
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('team.whyJoin')}</p>
             </div>
             <h2 className="text-2xl md:text-3xl font-bold text-slate-900 mb-3 leading-tight">
-              Du willst nicht nur studieren, sondern die JKU aktiv mitgestalten?
+              {t('team.whyJoinTitle')}
             </h2>
             <p className="text-[15px] text-slate-500 leading-relaxed mb-8">
-              Als Teil der Universität durch die ÖH wirkst du an Ausrichtung und Entscheidungen mit &ndash; in Kommissionen, 
-              Projekten und Verhandlungen:
+              {t('team.whyJoinDesc')}
             </p>
           </RevealOnScroll>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mb-8">
@@ -364,13 +357,10 @@ export default function Team() {
             ))}
           </div>
           <RevealOnScroll>
-            <p className="text-sm text-slate-500 mb-6">
-              Ehrenamtliche erhalten <strong className="text-slate-700">45% mehr Interview-Rückmeldungen</strong>{' '}
-              <span className="text-slate-400">(Alfonso-Costillo et al., 2021)</span>.
-            </p>
+            <p className="text-sm text-slate-500 mb-6" dangerouslySetInnerHTML={{ __html: t('team.interviewStat') }} />
             <Link to="/contact" data-testid="team-join-btn"
               className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-full transition-all hover:shadow-lg hover:shadow-blue-500/20">
-              Kontakt aufnehmen <ArrowRight size={15} />
+              {t('team.contactBtn')} <ArrowRight size={15} />
             </Link>
           </RevealOnScroll>
         </div>

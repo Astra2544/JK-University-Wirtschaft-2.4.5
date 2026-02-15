@@ -1,20 +1,21 @@
 /**
- * ═══════════════════════════════════════════════════════════════════════════
- *  KALENDER PAGE | ÖH Wirtschaft Website
- * ═══════════════════════════════════════════════════════════════════════════
+ * ===============================================================================
+ *  KALENDER PAGE | OeH Wirtschaft Website
+ * ===============================================================================
  */
 
 import React, { useState, useEffect, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { motion, AnimatePresence } from 'framer-motion';
 import { RevealOnScroll } from '../components/Animations';
-import { 
-  Calendar as CalendarIcon, 
-  ChevronLeft, 
-  ChevronRight, 
-  Search, 
-  Filter, 
-  MapPin, 
-  Clock, 
+import {
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Filter,
+  MapPin,
+  Clock,
   Tag,
   Grid3X3,
   List,
@@ -25,7 +26,6 @@ import Marquee from '../components/Marquee';
 
 const API_URL = process.env.REACT_APP_BACKEND_URL;
 
-// Color mappings
 const colorMap = {
   blue: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200', dot: 'bg-blue-500' },
   gold: { bg: 'bg-amber-100', text: 'text-amber-700', border: 'border-amber-200', dot: 'bg-amber-500' },
@@ -37,11 +37,6 @@ const colorMap = {
   orange: { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-200', dot: 'bg-orange-500' },
 };
 
-// German month names
-const monthNames = ['Januar', 'Februar', 'März', 'April', 'Mai', 'Juni', 'Juli', 'August', 'September', 'Oktober', 'November', 'Dezember'];
-const dayNames = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
-
-// Animation variants
 const pageVariants = {
   initial: { opacity: 0 },
   animate: { opacity: 1, transition: { duration: 0.5 } },
@@ -49,17 +44,20 @@ const pageVariants = {
 };
 
 export default function Kalender() {
+  const { t, i18n } = useTranslation();
   const [events, setEvents] = useState([]);
   const [allTags, setAllTags] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [view, setView] = useState('month'); // month, week, list
+  const [view, setView] = useState('month');
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTag, setSelectedTag] = useState('');
   const [showFilters, setShowFilters] = useState(false);
 
-  // Fetch events
+  const monthNames = t('kalender.months', { returnObjects: true });
+  const dayNames = t('kalender.days', { returnObjects: true });
+
   useEffect(() => {
     fetchEvents();
     fetchTags();
@@ -89,10 +87,9 @@ export default function Kalender() {
     }
   };
 
-  // Filter events
   const filteredEvents = useMemo(() => {
     return events.filter(event => {
-      const matchesSearch = !searchQuery || 
+      const matchesSearch = !searchQuery ||
         event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (event.description && event.description.toLowerCase().includes(searchQuery.toLowerCase()));
       const matchesTag = !selectedTag || (event.tags && event.tags.includes(selectedTag));
@@ -100,21 +97,20 @@ export default function Kalender() {
     });
   }, [events, searchQuery, selectedTag]);
 
-  // Calendar helpers
   const getDaysInMonth = (date) => {
     const year = date.getFullYear();
     const month = date.getMonth();
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
     const daysInMonth = lastDay.getDate();
-    const startingDay = (firstDay.getDay() + 6) % 7; // Monday = 0
+    const startingDay = (firstDay.getDay() + 6) % 7;
     return { daysInMonth, startingDay };
   };
 
   const getEventsForDay = (day) => {
     return filteredEvents.filter(event => {
       const eventDate = new Date(event.start_date);
-      return eventDate.getDate() === day && 
+      return eventDate.getDate() === day &&
              eventDate.getMonth() === currentDate.getMonth() &&
              eventDate.getFullYear() === currentDate.getFullYear();
     });
@@ -132,37 +128,36 @@ export default function Kalender() {
     setCurrentDate(new Date());
   };
 
+  const dateLocale = i18n.language === 'en' ? 'en-GB' : 'de-DE';
+
   const formatTime = (dateStr) => {
     const date = new Date(dateStr);
-    return date.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleTimeString(dateLocale, { hour: '2-digit', minute: '2-digit' });
   };
 
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
-    return date.toLocaleDateString('de-DE', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    return date.toLocaleDateString(dateLocale, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
   };
 
-  // Render calendar grid
   const renderCalendarGrid = () => {
     const { daysInMonth, startingDay } = getDaysInMonth(currentDate);
     const days = [];
     const today = new Date();
 
-    // Empty cells for days before month starts
     for (let i = 0; i < startingDay; i++) {
       days.push(<div key={`empty-${i}`} className="h-24 md:h-28 bg-slate-50/50" />);
     }
 
-    // Days of month
     for (let day = 1; day <= daysInMonth; day++) {
       const dayEvents = getEventsForDay(day);
-      const isToday = today.getDate() === day && 
-                      today.getMonth() === currentDate.getMonth() && 
+      const isToday = today.getDate() === day &&
+                      today.getMonth() === currentDate.getMonth() &&
                       today.getFullYear() === currentDate.getFullYear();
 
       days.push(
-        <div 
-          key={day} 
+        <div
+          key={day}
           className={`h-24 md:h-28 p-1 md:p-2 border-t border-slate-100 transition-colors hover:bg-blue-50/30 ${
             isToday ? 'bg-blue-50/50' : ''
           }`}
@@ -185,7 +180,7 @@ export default function Kalender() {
               </button>
             ))}
             {dayEvents.length > 2 && (
-              <p className="text-[10px] text-slate-400 px-1">+{dayEvents.length - 2} mehr</p>
+              <p className="text-[10px] text-slate-400 px-1">+{dayEvents.length - 2} {t('kalender.more')}</p>
             )}
           </div>
         </div>
@@ -195,15 +190,14 @@ export default function Kalender() {
     return days;
   };
 
-  // Render list view
   const renderListView = () => {
     const sortedEvents = [...filteredEvents].sort((a, b) => new Date(a.start_date) - new Date(b.start_date));
-    
+
     if (sortedEvents.length === 0) {
       return (
         <div className="text-center py-12 text-slate-400">
           <CalendarIcon size={48} className="mx-auto mb-4 opacity-50" />
-          <p>Keine Events in diesem Monat</p>
+          <p>{t('kalender.noEvents')}</p>
         </div>
       );
     }
@@ -225,7 +219,7 @@ export default function Kalender() {
                 <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
                   <span className="flex items-center gap-1">
                     <Clock size={14} />
-                    {event.all_day ? 'Ganztägig' : formatTime(event.start_date)}
+                    {event.all_day ? t('kalender.allDay') : formatTime(event.start_date)}
                   </span>
                   <span>{formatDate(event.start_date)}</span>
                   {event.location && (
@@ -254,39 +248,36 @@ export default function Kalender() {
 
   return (
     <motion.div variants={pageVariants} initial="initial" animate="animate" exit="exit">
-      {/* Header */}
       <section className="pt-28 pb-8 md:pt-40 md:pb-12 px-5 relative overflow-hidden">
         <div className="absolute top-10 -right-40 w-[500px] h-[500px] rounded-full bg-blue-50 blur-3xl opacity-50" />
         <div className="max-w-[1120px] mx-auto relative">
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-8 h-[3px] rounded-full bg-gold-500" />
-              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">Wichtige Termine</p>
+              <p className="text-sm font-semibold text-slate-500 uppercase tracking-wider">{t('kalender.section')}</p>
             </div>
             <h1 data-testid="kalender-title" className="text-3xl md:text-5xl font-bold text-slate-900 tracking-tight mb-4">
-              Kalender
+              {t('kalender.title')}
             </h1>
             <p className="text-lg text-slate-500 max-w-xl leading-relaxed">
-              Alle wichtigen Termine und Events der ÖH Wirtschaft auf einen Blick.
+              {t('kalender.desc')}
             </p>
           </motion.div>
         </div>
       </section>
 
       <Marquee
-        items={['Plane voraus', 'Kein Event verpassen', 'Dein Semester im Griff', 'Dabei sein ist alles', 'Mach das Beste draus']}
+        items={t('kalender.marquee', { returnObjects: true })}
         variant="gold"
         speed={36}
         reverse
       />
 
-      {/* Controls */}
       <section className="px-5 pt-8 pb-6">
         <div className="max-w-[1120px] mx-auto">
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-            {/* Month Navigation */}
             <div className="flex items-center gap-3">
-              <button 
+              <button
                 onClick={() => navigateMonth(-1)}
                 className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
               >
@@ -295,35 +286,32 @@ export default function Kalender() {
               <h2 className="text-xl font-bold text-slate-900 min-w-[200px] text-center">
                 {monthNames[currentDate.getMonth()]} {currentDate.getFullYear()}
               </h2>
-              <button 
+              <button
                 onClick={() => navigateMonth(1)}
                 className="w-10 h-10 rounded-xl border border-slate-200 flex items-center justify-center hover:bg-slate-50 transition-colors"
               >
                 <ChevronRight size={20} />
               </button>
-              <button 
+              <button
                 onClick={goToToday}
                 className="px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-xl hover:bg-blue-100 transition-colors"
               >
-                Heute
+                {t('kalender.today')}
               </button>
             </div>
 
-            {/* View Toggle & Filters */}
             <div className="flex items-center gap-2">
-              {/* Search */}
               <div className="relative">
                 <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   type="text"
-                  placeholder="Suchen..."
+                  placeholder={t('kalender.search')}
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10 pr-4 py-2 w-44 md:w-56 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500"
                 />
               </div>
 
-              {/* Filter Button */}
               <button
                 onClick={() => setShowFilters(!showFilters)}
                 className={`w-10 h-10 rounded-xl border flex items-center justify-center transition-colors ${
@@ -333,7 +321,6 @@ export default function Kalender() {
                 <Filter size={18} />
               </button>
 
-              {/* View Toggle */}
               <div className="flex bg-slate-100 rounded-xl p-1">
                 <button
                   onClick={() => setView('month')}
@@ -355,7 +342,6 @@ export default function Kalender() {
             </div>
           </div>
 
-          {/* Tag Filters */}
           <AnimatePresence>
             {showFilters && allTags.length > 0 && (
               <motion.div
@@ -371,7 +357,7 @@ export default function Kalender() {
                       !selectedTag ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                     }`}
                   >
-                    Alle
+                    {t('kalender.all')}
                   </button>
                   {allTags.map(tag => (
                     <button
@@ -392,7 +378,6 @@ export default function Kalender() {
         </div>
       </section>
 
-      {/* Calendar */}
       <section data-testid="kalender-content" className="px-5 pb-20">
         <div className="max-w-[1120px] mx-auto">
           {loading ? (
@@ -402,7 +387,6 @@ export default function Kalender() {
           ) : view === 'month' ? (
             <RevealOnScroll>
               <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden">
-                {/* Day Headers */}
                 <div className="grid grid-cols-7 bg-slate-50">
                   {dayNames.map(day => (
                     <div key={day} className="py-3 text-center text-sm font-semibold text-slate-600">
@@ -410,7 +394,6 @@ export default function Kalender() {
                     </div>
                   ))}
                 </div>
-                {/* Calendar Grid */}
                 <div className="grid grid-cols-7">
                   {renderCalendarGrid()}
                 </div>
@@ -424,7 +407,6 @@ export default function Kalender() {
         </div>
       </section>
 
-      {/* Event Detail Modal */}
       <AnimatePresence>
         {selectedEvent && (
           <motion.div
@@ -468,7 +450,7 @@ export default function Kalender() {
                 {selectedEvent.all_day && (
                   <div className="flex items-center gap-3 text-slate-600">
                     <Clock size={18} className="text-slate-400" />
-                    <span>Ganztägig</span>
+                    <span>{t('kalender.allDay')}</span>
                   </div>
                 )}
                 {selectedEvent.location && (

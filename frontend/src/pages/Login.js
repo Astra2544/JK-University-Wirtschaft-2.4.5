@@ -7,17 +7,19 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { useTranslation } from 'react-i18next';
 import { Lock, User, AlertCircle, Eye, EyeOff, ArrowLeft } from 'lucide-react';
 
-const pv = { 
-  initial: { opacity: 0 }, 
-  animate: { opacity: 1, transition: { duration: 0.5 } }, 
-  exit: { opacity: 0, transition: { duration: 0.2 } } 
+const pv = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.5 } },
+  exit: { opacity: 0, transition: { duration: 0.2 } }
 };
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
 
 export default function Login() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ username: '', password: '' });
   const [error, setError] = useState('');
@@ -39,14 +41,12 @@ export default function Login() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.detail || 'Login fehlgeschlagen');
+        throw new Error(data.detail || t('login.error'));
       }
 
-      // Store token and admin data
       localStorage.setItem('token', data.access_token);
       localStorage.setItem('admin', JSON.stringify(data.admin));
 
-      // Redirect to admin panel
       navigate('/admin');
     } catch (err) {
       setError(err.message);
@@ -63,7 +63,7 @@ export default function Login() {
           onClick={() => navigate('/')}
           className="flex items-center gap-2 text-sm text-slate-400 hover:text-slate-600 mb-8 transition-colors"
         >
-          <ArrowLeft size={16} /> Zurück zur Website
+          <ArrowLeft size={16} /> {t('login.backToSite')}
         </button>
 
         {/* Login Card */}
@@ -78,8 +78,8 @@ export default function Login() {
             <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center mx-auto mb-4">
               <Lock className="text-white" size={28} />
             </div>
-            <h1 data-testid="login-page-title" className="text-xl font-bold text-white mb-1">Admin Login</h1>
-            <p className="text-blue-100 text-sm">ÖH Wirtschaft Verwaltung</p>
+            <h1 data-testid="login-page-title" className="text-xl font-bold text-white mb-1">{t('login.title')}</h1>
+            <p className="text-blue-100 text-sm">{t('login.subtitle')}</p>
           </div>
 
           {/* Form */}
@@ -97,7 +97,7 @@ export default function Login() {
 
             {/* Username */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Benutzername</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">{t('login.username')}</label>
               <div className="relative">
                 <User size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -106,7 +106,7 @@ export default function Login() {
                   value={formData.username}
                   onChange={(e) => setFormData({ ...formData, username: e.target.value })}
                   className="w-full pl-10 pr-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Dein Benutzername"
+                  placeholder={t('login.usernamePh')}
                   required
                 />
               </div>
@@ -114,7 +114,7 @@ export default function Login() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-slate-700 mb-2">Passwort</label>
+              <label className="block text-sm font-medium text-slate-700 mb-2">{t('login.password')}</label>
               <div className="relative">
                 <Lock size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
@@ -123,7 +123,7 @@ export default function Login() {
                   value={formData.password}
                   onChange={(e) => setFormData({ ...formData, password: e.target.value })}
                   className="w-full pl-10 pr-12 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                  placeholder="Dein Passwort"
+                  placeholder={t('login.passwordPh')}
                   required
                 />
                 <button
@@ -150,10 +150,10 @@ export default function Login() {
                     transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                     className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                   />
-                  Anmelden...
+                  {t('login.submitting')}
                 </>
               ) : (
-                'Anmelden'
+                t('login.submit')
               )}
             </button>
           </form>
@@ -161,9 +161,9 @@ export default function Login() {
           {/* Footer */}
           <div className="px-6 pb-6">
             <p className="text-xs text-slate-400 text-center">
-              Nur für autorisierte Administratoren.
+              {t('login.adminOnly')}
               <br />
-              Bei Problemen kontaktiere: <a href="mailto:wirtschaft@oeh.jku.at" className="text-blue-500 hover:underline">wirtschaft@oeh.jku.at</a>
+              {t('login.problemContact')} <a href="mailto:wirtschaft@oeh.jku.at" className="text-blue-500 hover:underline">wirtschaft@oeh.jku.at</a>
             </p>
           </div>
         </motion.div>

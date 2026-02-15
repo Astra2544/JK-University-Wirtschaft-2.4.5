@@ -2207,7 +2207,7 @@ def send_verification_email(email: str, code: str, lva_name: str) -> bool:
                     <p>Johannes Kepler Universität Linz</p>
                 </div>
                 <div class="content">
-                    <p style="color: #475569; margin-bottom: 20px;">Hallo!</p>
+                    <p style="color: #475569; margin-bottom: 20px;">Liebe Kollegin / Lieber Kollege,</p>
                     <p style="color: #475569;">Du hast einen Verifizierungscode angefordert, um folgende LVA zu bewerten:</p>
                     <div style="text-align: center;">
                         <span class="lva-name">{lva_name}</span>
@@ -2221,6 +2221,11 @@ def send_verification_email(email: str, code: str, lva_name: str) -> bool:
                         <p><strong>⏱️ Gültigkeit:</strong> Dieser Code ist 30 Minuten gültig.</p>
                     </div>
                 </div>
+                <div style="padding: 0 30px 20px;">
+                    <p style="color: #475569; margin: 20px 0 4px;">Liebe Grüße,</p>
+                    <p style="color: #1e293b; font-weight: 600; margin: 0 0 2px;">Maximilian Pilsner (Vorsitzender)</p>
+                    <p style="color: #475569; margin: 0;">und das Team deiner ÖH Wirtschaft</p>
+                </div>
                 <div class="footer">
                     <p>ÖH Wirtschaft - Studienvertretung</p>
                     <p>wirtschaft@oeh.jku.at</p>
@@ -2232,18 +2237,22 @@ def send_verification_email(email: str, code: str, lva_name: str) -> bool:
         
         text_content = f"""
         ÖH Wirtschaft - Verifizierungscode
-        
-        Hallo!
-        
+
+        Liebe Kollegin / Lieber Kollege,
+
         Du hast einen Verifizierungscode angefordert, um folgende LVA zu bewerten:
         {lva_name}
-        
+
         Dein Verifizierungscode: {code}
-        
+
         Wichtig:
         - Deine E-Mail-Adresse wird NICHT gespeichert
         - Der Code ist 30 Minuten gültig
-        
+
+        Liebe Grüße,
+        Maximilian Pilsner (Vorsitzender)
+        und das Team deiner ÖH Wirtschaft
+
         ÖH Wirtschaft - Studienvertretung
         wirtschaft@oeh.jku.at
         """

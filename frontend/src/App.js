@@ -33,6 +33,7 @@ import Navbar from './components/Navbar';         // Navigation oben
 import Footer from './components/Footer';         // Footer unten
 import ScrollToTop from './components/ScrollToTop'; // Scrollt nach oben bei Seitenwechsel
 import CustomCursor from './components/CustomCursor'; // Animierter Custom Cursor
+import OEHliChat from './components/OEHli';           // ÖHli Assistent
 
 // Seiten
 import Home from './pages/Home';                  // Startseite
@@ -124,6 +125,7 @@ function App() {
           <AnimatedRoutes />
         </main>
         <Footer />
+        <OEHliChat />
       </div>
     </Router>
   );

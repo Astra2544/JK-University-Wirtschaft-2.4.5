@@ -69,3 +69,8 @@ a:hover, button:hover, [role="button"]:hover {
 .marquee-reverse {
   animation: marquee-scroll var(--marquee-speed, 35s) linear infinite reverse;
 }
+
+.oehli-scrollbar::-webkit-scrollbar { width: 4px; }
+.oehli-scrollbar::-webkit-scrollbar-track { background: transparent; }
+.oehli-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+.oehli-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }

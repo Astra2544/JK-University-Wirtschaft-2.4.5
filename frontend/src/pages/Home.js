@@ -26,6 +26,8 @@ import { ArrowRight, Users, BookOpen, Headphones, Newspaper, Instagram, Linkedin
 import ImageSlider from '../components/ImageSlider';
 import Marquee from '../components/Marquee';
 
+const IMG_V = '?v=2';
+
 // ─── ANIMATION VARIANTEN ───────────────────────────────────────────────────
 // Für fade-in/fade-out Effekte bei Seitenwechsel
 const pv = { 
@@ -148,7 +150,7 @@ export default function Home() {
               {/* Hauptbild */}
               <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl">
                 <img 
-                  src="/images/background/hero-main.jpg" 
+                  src={`/images/background/hero-main.jpg${IMG_V}`}
                   alt="JKU Campus" 
                   className="w-full h-[190px] sm:h-[240px] lg:h-[380px] object-cover"
                 />
@@ -159,7 +161,7 @@ export default function Home() {
               {/* Kleines Bild links unten - überlappt */}
               <div className="absolute -bottom-3 -left-3 sm:-bottom-5 sm:-left-5 lg:-bottom-6 lg:-left-6 w-24 h-18 sm:w-36 sm:h-26 lg:w-48 lg:h-36 rounded-lg sm:rounded-xl overflow-hidden shadow-xl border-2 sm:border-3 lg:border-4 border-white">
                 <img 
-                  src="/images/background/hero-small1.jpg" 
+                  src={`/images/background/hero-small1.jpg${IMG_V}`}
                   alt="Team bei der Arbeit" 
                   className="w-full h-full object-cover"
                 />
@@ -168,7 +170,7 @@ export default function Home() {
               {/* Kleines Bild rechts oben - überlappt */}
               <div className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 lg:-top-4 lg:-right-4 w-20 h-16 sm:w-28 sm:h-22 lg:w-40 lg:h-28 rounded-lg sm:rounded-xl overflow-hidden shadow-xl border-2 sm:border-3 lg:border-4 border-white">
                 <img 
-                  src="/images/background/hero-small2.jpg" 
+                  src={`/images/background/hero-small2.jpg${IMG_V}`}
                   alt="Studenten" 
                   className="w-full h-full object-cover"
                 />
@@ -226,7 +228,7 @@ export default function Home() {
               {/* Hauptbild - Querformat */}
               <div className="relative rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl">
                 <img 
-                  src="/images/background/about-main.jpg" 
+                  src={`/images/background/about-main.jpg${IMG_V}`}
                   alt="Team Meeting" 
                   className="w-full h-[160px] sm:h-[190px] lg:h-[260px] object-cover object-center"
                 />
@@ -236,7 +238,7 @@ export default function Home() {
               {/* Zweites Bild - überlappt unten rechts */}
               <div className="absolute -bottom-3 -right-3 sm:-bottom-4 sm:-right-4 w-32 h-20 sm:w-40 sm:h-26 lg:w-52 lg:h-32 rounded-lg sm:rounded-xl overflow-hidden shadow-xl border-2 sm:border-3 lg:border-4 border-white">
                 <img 
-                  src="/images/background/about-small.jpg" 
+                  src={`/images/background/about-small.jpg${IMG_V}`}
                   alt="Gruppenfoto" 
                   className="w-full h-full object-cover object-center"
                 />

@@ -13,6 +13,8 @@ import 'swiper/css';
 import 'swiper/css/pagination';
 import 'swiper/css/effect-fade';
 
+const IMG_V = '?v=2';
+
 // Slider Bilder mit individueller Positionierung für perfekte Zentrierung
 const sliderImages = [
   { 
@@ -84,10 +86,10 @@ export default function ImageSlider() {
             <SwiperSlide key={index}>
               <div className="relative w-full aspect-[16/9] sm:aspect-[21/9]">
                 <img
-                  src={image.src}
+                  src={`${image.src}${IMG_V}`}
                   alt={image.alt}
                   className={`w-full h-full object-cover ${
-                    image.position === 'top' ? 'object-top' : 
+                    image.position === 'top' ? 'object-top' :
                     image.position === 'custom' ? '' : 'object-center'
                   }`}
                   style={image.customPosition ? { objectPosition: image.customPosition } : {}}
@@ -124,7 +126,7 @@ export default function ImageSlider() {
             className="relative aspect-square rounded-lg overflow-hidden group cursor-pointer"
           >
             <img
-              src={image.src}
+              src={`${image.src}${IMG_V}`}
               alt={image.alt}
               className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
             />

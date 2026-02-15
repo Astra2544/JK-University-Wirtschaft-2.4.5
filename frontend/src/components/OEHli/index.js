@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MessageCircle, X, Send, Maximize2, Minimize2, ChevronRight } from 'lucide-react';
+import { X, Send, Maximize2, Minimize2, ChevronRight } from 'lucide-react';
 import { findResponse, getQuickActions, getGreeting } from './OEHliMatcher';
 
 const TYPING_MIN_DELAY = 800;
@@ -26,9 +26,7 @@ function MessageBubble({ message, onButtonClick }) {
       <div className={`max-w-[85%] ${isBot ? 'order-2' : ''}`}>
         {isBot && (
           <div className="flex items-center gap-1.5 mb-1">
-            <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-              <span className="text-[9px] font-bold text-white">Ö</span>
-            </div>
+            <img src="/images/ÖHli_logo.png" alt="ÖHli" className="w-6 h-6 object-contain flex-shrink-0" />
             <span className="text-[11px] font-medium text-slate-400">ÖHli</span>
           </div>
         )}
@@ -70,9 +68,7 @@ function TypingIndicator() {
     >
       <div>
         <div className="flex items-center gap-1.5 mb-1">
-          <div className="w-5 h-5 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center flex-shrink-0">
-            <span className="text-[9px] font-bold text-white">Ö</span>
-          </div>
+          <img src="/images/ÖHli_logo.png" alt="ÖHli" className="w-6 h-6 object-contain flex-shrink-0" />
           <span className="text-[11px] font-medium text-slate-400">ÖHli tippt...</span>
         </div>
         <div className="px-4 py-3 bg-slate-50 rounded-2xl rounded-tl-md border border-slate-100 inline-flex gap-1.5">
@@ -237,9 +233,7 @@ export default function OEHliChat() {
           >
             <div className="flex items-center justify-between px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 flex-shrink-0">
               <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-full bg-white/20 backdrop-blur flex items-center justify-center">
-                  <span className="text-sm font-bold text-white">Ö</span>
-                </div>
+                <img src="/images/ÖHli_logo.png" alt="ÖHli" className="w-9 h-9 object-contain" />
                 <div>
                   <h3 className="text-white font-semibold text-sm leading-none">ÖHli</h3>
                   <p className="text-blue-100 text-[10px] mt-0.5">Dein Studien-Assistent</p>
@@ -332,8 +326,8 @@ export default function OEHliChat() {
             className="fixed bottom-5 right-5 z-[9999] group"
           >
             <div className="relative">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 flex items-center justify-center hover:shadow-xl hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300">
-                <MessageCircle className="w-6 h-6 text-white" />
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 flex items-center justify-center hover:shadow-xl hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300 p-2">
+                <img src="/images/ÖHli_logo.png" alt="ÖHli" className="w-9 h-9 object-contain" />
               </div>
               <AnimatePresence>
                 {unreadCount > 0 && (

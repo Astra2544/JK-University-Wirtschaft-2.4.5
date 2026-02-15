@@ -4,23 +4,77 @@
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { RevealOnScroll } from '../components/Animations';
-import { 
+import {
   Mail, MapPin, Clock, Send, CheckCircle, AlertCircle,
   Instagram, Linkedin, ExternalLink, MessageCircle, Calendar,
-  ArrowUpRight, Building, ChevronDown, HelpCircle
+  ArrowUpRight, Building, ChevronDown, HelpCircle, Upload, X,
+  FileText, Image as ImageIcon, Info
 } from 'lucide-react';
 import Marquee from '../components/Marquee';
 
-const pv = { 
-  initial: { opacity: 0 }, 
-  animate: { opacity: 1, transition: { duration: 0.5 } }, 
-  exit: { opacity: 0, transition: { duration: 0.2 } } 
+const pv = {
+  initial: { opacity: 0 },
+  animate: { opacity: 1, transition: { duration: 0.5 } },
+  exit: { opacity: 0, transition: { duration: 0.2 } }
 };
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL || '';
+
+const STUDIUM_OPTIONS = [
+  { group: 'Allgemein', items: ['Noch kein Studium', 'Studium bereits abgeschlossen'] },
+  { group: 'Bachelor', items: [
+    'BSc. Wirtschaftswissenschaften',
+    'BSc. Betriebswirtschaftslehre',
+    'BSc. International Business Administration',
+    'BSc. (CE) Finance, Banking und Digitalisierung',
+  ]},
+  { group: 'Master', items: [
+    'MSc. Digital Business Management',
+    'MSc. Economic and Business Analytics',
+    'MSc. Economics',
+    'MSc. Finance and Accounting',
+    'MSc. Management',
+    'MSc. General Management',
+    'MSc. Global Business',
+    'MSc. Leading Innovative Organizations',
+  ]},
+  { group: 'MBA', items: [
+    'MBA Global Executive MBA',
+    'MBA Executive MBA Management & Leadership',
+    'MBA Management und Leadership für Frauen',
+    'MBA Health Care Management',
+  ]},
+  { group: 'Universitätslehrgänge', items: [
+    'ULG Versicherungswirtschaft',
+    'ULG Tourismusmanagement',
+    'ULG Applied Business Excellence',
+  ]},
+];
+
+const ANLIEGEN_OPTIONS = [
+  'Mitmachen bei der Studienvertretung',
+  'Beitritt WhatsApp-Community',
+  'Frage zu Lehrveranstaltungen',
+  'Problem bei Lehrveranstaltungen',
+  'Problem mit Lehrenden',
+  'Problem mit LV-Bewertungstool',
+  'Frage zu Studienplaner',
+  'Sonstiges',
+];
+
+const SEMESTER_OPTIONS = [
+  'Ich studiere noch nicht',
+  '1. Semester',
+  '2. Semester',
+  '3. Semester',
+  '4. Semester',
+  '5. Semester',
+  '6. Semester oder höher',
+  'Ich habe mein Studium abgeschlossen',
+];
 
 // ─── KALENDER-IMPORT LINKS ─────────────────────────────────────────────────
 const calLinks = [
@@ -48,7 +102,6 @@ const faq = [
   { q: 'Wie komme ich am besten in die Universität? Wo kann ich parken?', a: 'Am JKU Campus gibt es mehrere Parkmöglichkeiten \u2013 unter anderem ein Parkhaus und eine Tiefgarage unter dem Science Park mit insgesamt rund 1.700 Stellplätzen. Als Student:in kannst du dort zu vergünstigten Tarifen parken. Allerdings sind die Parkplätze zu Studienzeiten oft sehr ausgelastet und das innere Campusgebiet ist autofrei. Daher empfiehlt die Uni, lieber öffentliche Verkehrsmittel zu nutzen. Am bequemsten erreichst du den Campus mit der Straßenbahnlinie 1 oder 2: beide fahren von Linz Innenstadt/Hauptbahnhof direkt bis zur Haltestelle \u201EUniversität\u201C (Fahrzeit ca. 25 Minuten). Zudem verbinden Buslinien die Uni mit verschiedenen Stadtteilen. Für umweltfreundliche Anreise gibt es auch gute Fahrradwege und viele Fahrradständer am Campus. Weitere Infos: jku.at/campus/der-jku-campus/anfahrt/. (Zuletzt aktualisiert: 07.2025)' },
 ];
 
-// FAQ Akkordeon Komponente
 function FaqAcc({ q, a, testId }) {
   const [open, setOpen] = useState(false);
   return (
@@ -64,56 +117,146 @@ function FaqAcc({ q, a, testId }) {
   );
 }
 
+const inputCls = 'w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all text-sm';
+const selectCls = (has) => `${inputCls} appearance-none bg-white ${has ? 'text-slate-900' : 'text-slate-400'}`;
+
+function SelectWrap({ children }) {
+  return (
+    <div className="relative">
+      {children}
+      <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
+    </div>
+  );
+}
+
 export default function Contact() {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    bereich: '',
-    subject: '',
-    message: ''
+  const fileRef = useRef(null);
+  const [fd, setFd] = useState({
+    name: '', email: '', studium: '', anliegen: '',
+    semester: '', nachricht: '', lvName: '', beschreibung: '',
+    lehrpersonName: '', lehrveranstaltung: '', datenschutz: false,
   });
+  const [file, setFile] = useState(null);
+  const [fileError, setFileError] = useState('');
   const [status, setStatus] = useState({ type: '', message: '' });
   const [sending, setSending] = useState(false);
+  const [touched, setTouched] = useState({});
+
+  const set = (e) => {
+    const { name, value, type, checked } = e.target;
+    setFd(p => ({ ...p, [name]: type === 'checkbox' ? checked : value }));
+    setTouched(p => ({ ...p, [name]: true }));
+  };
+
+  const setAnliegen = (e) => {
+    setFd(p => ({
+      ...p, anliegen: e.target.value,
+      semester: '', nachricht: '', lvName: '', beschreibung: '',
+      lehrpersonName: '', lehrveranstaltung: '',
+    }));
+    setFile(null);
+    setFileError('');
+    setTouched(p => ({ ...p, anliegen: true }));
+  };
+
+  const onFile = (e) => {
+    const f = e.target.files[0];
+    setFileError('');
+    if (!f) { setFile(null); return; }
+    if (!['application/pdf','image/jpeg','image/png'].includes(f.type)) {
+      setFileError('Nur PDF, JPG und PNG Dateien sind erlaubt.');
+      setFile(null); return;
+    }
+    if (f.size > 10 * 1024 * 1024) {
+      setFileError('Die Datei darf maximal 10 MB groß sein.');
+      setFile(null); return;
+    }
+    setFile(f);
+  };
+
+  const clearFile = () => {
+    setFile(null); setFileError('');
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  const isMitmachen = fd.anliegen === 'Mitmachen bei der Studienvertretung';
+  const isWhatsApp = fd.anliegen === 'Beitritt WhatsApp-Community';
+  const isFrageLV = fd.anliegen === 'Frage zu Lehrveranstaltungen';
+  const isProblemLV = fd.anliegen === 'Problem bei Lehrveranstaltungen';
+  const isProblemLehrende = fd.anliegen === 'Problem mit Lehrenden';
+  const isProblemBewertung = fd.anliegen === 'Problem mit LV-Bewertungstool';
+  const isFragePlaner = fd.anliegen === 'Frage zu Studienplaner';
+  const isSonstiges = fd.anliegen === 'Sonstiges';
+  const needsLvName = isFrageLV || isProblemLV;
+  const needsDesc = isFrageLV || isProblemLV || isProblemLehrende || isProblemBewertung || isFragePlaner || isSonstiges;
+
+  const valid = () => {
+    if (!fd.name.trim() || !fd.email.trim() || !fd.studium || !fd.anliegen || !fd.datenschutz) return false;
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fd.email)) return false;
+    if (isMitmachen && !fd.semester) return false;
+    if (isWhatsApp && !file) return false;
+    if (needsLvName && !fd.lvName.trim()) return false;
+    if (isProblemLehrende && !fd.lehrpersonName.trim()) return false;
+    if (needsDesc && !fd.beschreibung.trim()) return false;
+    return true;
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!valid()) return;
     setSending(true);
     setStatus({ type: '', message: '' });
-
     try {
-      const response = await fetch(`${BACKEND_URL}/api/contact`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
+      const body = new FormData();
+      body.append('name', fd.name.trim());
+      body.append('email', fd.email.trim());
+      body.append('studium', fd.studium);
+      body.append('anliegen', fd.anliegen);
+      if (isMitmachen) {
+        body.append('semester', fd.semester);
+        if (fd.nachricht.trim()) body.append('nachricht', fd.nachricht.trim());
+      }
+      if (isWhatsApp && file) body.append('file', file);
+      if (needsLvName) body.append('lv_name', fd.lvName.trim());
+      if (isProblemLehrende) {
+        body.append('lehrperson_name', fd.lehrpersonName.trim());
+        if (fd.lehrveranstaltung.trim()) body.append('lehrveranstaltung', fd.lehrveranstaltung.trim());
+      }
+      if (needsDesc) body.append('beschreibung', fd.beschreibung.trim());
 
-      const data = await response.json();
-
-      if (response.ok) {
-        setStatus({ type: 'success', message: 'Nachricht erfolgreich gesendet! Wir melden uns bald bei dir.' });
-        setFormData({ name: '', email: '', bereich: '', subject: '', message: '' });
+      const res = await fetch(`${BACKEND_URL}/api/contact`, { method: 'POST', body });
+      const data = await res.json();
+      if (res.ok) {
+        setStatus({ type: 'success', message: 'Deine Anfrage wurde erfolgreich gesendet! Wir melden uns bei dir.' });
+        setFd({ name:'', email:'', studium:'', anliegen:'', semester:'', nachricht:'',
+          lvName:'', beschreibung:'', lehrpersonName:'', lehrveranstaltung:'', datenschutz:false });
+        setFile(null); setTouched({});
+        if (fileRef.current) fileRef.current.value = '';
       } else {
         throw new Error(data.detail || 'Fehler beim Senden');
       }
     } catch (err) {
       setStatus({ type: 'error', message: err.message || 'Ein Fehler ist aufgetreten. Bitte versuche es später erneut.' });
-    } finally {
-      setSending(false);
-    }
+    } finally { setSending(false); }
   };
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  const descLabel = (isProblemLV || isProblemBewertung || isFragePlaner) ? 'Problembeschreibung' : 'Beschreibung';
+  const descPlaceholder =
+    isProblemLV ? 'Beschreibe das Problem mit der Lehrveranstaltung...'
+    : isProblemLehrende ? 'Beschreibe das Problem...'
+    : isProblemBewertung ? 'Beschreibe das Problem mit dem Bewertungstool...'
+    : isFragePlaner ? 'Beschreibe dein Problem oder deine Frage zum Studienplaner...'
+    : isFrageLV ? 'Beschreibe deine Frage zur Lehrveranstaltung...'
+    : 'Beschreibe dein Anliegen...';
 
   return (
     <motion.div variants={pv} initial="initial" animate="animate" exit="exit">
-      
+
       {/* Header */}
       <section className="pt-28 pb-12 md:pt-40 md:pb-16 px-5 relative overflow-hidden">
         <div className="absolute top-10 -right-40 w-[500px] h-[500px] rounded-full bg-blue-50 blur-3xl opacity-50" />
         <div className="absolute -bottom-20 -left-40 w-[400px] h-[400px] rounded-full bg-gold-50 blur-3xl opacity-50" />
-        
+
         <div className="max-w-[1120px] mx-auto relative">
           <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
             <div className="flex items-center gap-3 mb-4">
@@ -133,128 +276,195 @@ export default function Contact() {
       {/* Main Content */}
       <section className="pb-20 px-5">
         <div className="max-w-[1120px] mx-auto">
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-12">
-            
-            {/* Contact Form */}
+
+            {/* ═══ NEW CONTACT FORM ═══ */}
             <RevealOnScroll className="lg:col-span-3">
               <div className="bg-white rounded-2xl p-6 md:p-8 border border-slate-100 h-full">
-                <h2 className="text-xl font-bold text-slate-900 mb-2">Schreib uns</h2>
-                <p className="text-sm text-slate-500 mb-6">Fülle das Formular aus und wir melden uns so schnell wie möglich bei dir.</p>
-                
+                <h2 className="text-xl font-bold text-slate-900 mb-1">Kontaktformular</h2>
+                <p className="text-sm text-slate-500 mb-6">Fülle das Formular aus und wir kümmern uns um dein Anliegen.</p>
+
                 {status.message && (
                   <motion.div
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className={`flex items-center gap-2 p-4 rounded-xl mb-6 ${
-                      status.type === 'success' 
-                        ? 'bg-green-50 text-green-700 border border-green-200' 
+                    className={`flex items-start gap-2 p-4 rounded-xl mb-6 text-sm ${
+                      status.type === 'success'
+                        ? 'bg-green-50 text-green-700 border border-green-200'
                         : 'bg-red-50 text-red-700 border border-red-200'
                     }`}
                   >
-                    {status.type === 'success' ? <CheckCircle size={18} /> : <AlertCircle size={18} />}
-                    {status.message}
+                    {status.type === 'success' ? <CheckCircle size={18} className="mt-0.5 shrink-0" /> : <AlertCircle size={18} className="mt-0.5 shrink-0" />}
+                    <span>{status.message}</span>
                   </motion.div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-4">
+                  {/* Name + Email */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Name <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="text"
-                        name="name"
-                        value={formData.name}
-                        onChange={handleChange}
-                        required
-                        data-testid="contact-name"
-                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="Dein Name"
-                      />
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Name <span className="text-red-500">*</span></label>
+                      <input type="text" name="name" value={fd.name} onChange={set} className={inputCls} placeholder="Dein vollständiger Name" />
                     </div>
                     <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        E-Mail <span className="text-red-500">*</span>
-                      </label>
-                      <input
-                        type="email"
-                        name="email"
-                        value={formData.email}
-                        onChange={handleChange}
-                        required
-                        data-testid="contact-email"
-                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="deine@email.at"
-                      />
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">E-Mail <span className="text-red-500">*</span></label>
+                      <input type="email" name="email" value={fd.email} onChange={set} className={inputCls} placeholder="deine@email.at" />
+                      {touched.email && fd.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fd.email) && (
+                        <p className="text-xs text-red-500 mt-1">Bitte gib eine gültige E-Mail-Adresse ein.</p>
+                      )}
                     </div>
                   </div>
-                  
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">
-                        Bereich <span className="text-red-500">*</span>
-                      </label>
-                      <div className="relative">
-                        <select
-                          name="bereich"
-                          value={formData.bereich}
-                          onChange={handleChange}
-                          required
-                          data-testid="contact-bereich"
-                          className={`w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all appearance-none bg-white ${
-                            formData.bereich ? 'text-slate-900' : 'text-slate-400'
-                          }`}
-                        >
-                          <option value="" disabled>Bereich auswahlen</option>
-                          <option value="Allgemein">Allgemein</option>
-                          <option value="Studium">Studium</option>
-                          <option value="Events">Events</option>
-                          <option value="Internationals">Internationals</option>
-                          <option value="Medien">Medien</option>
-                          <option value="Social Media">Social Media</option>
-                          <option value="Mitmachen">Mitmachen</option>
-                          <option value="Sonstiges">Sonstiges</option>
-                        </select>
-                        <ChevronDown size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-slate-700 mb-2">Betreff</label>
-                      <input
-                        type="text"
-                        name="subject"
-                        value={formData.subject}
-                        onChange={handleChange}
-                        data-testid="contact-subject"
-                        className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-                        placeholder="Worum geht es?"
-                      />
-                    </div>
-                  </div>
-                  
+
+                  {/* Studium */}
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
-                      Nachricht <span className="text-red-500">*</span>
-                    </label>
-                    <textarea
-                      name="message"
-                      value={formData.message}
-                      onChange={handleChange}
-                      required
-                      rows={5}
-                      data-testid="contact-message"
-                      className="w-full px-4 py-3 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all resize-none"
-                      placeholder="Deine Nachricht an uns..."
-                    />
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Studium <span className="text-red-500">*</span></label>
+                    <SelectWrap>
+                      <select name="studium" value={fd.studium} onChange={set} className={selectCls(fd.studium)}>
+                        <option value="" disabled>Studiengang auswählen</option>
+                        {STUDIUM_OPTIONS.map(g => (
+                          <optgroup key={g.group} label={g.group}>
+                            {g.items.map(i => <option key={i} value={i}>{i}</option>)}
+                          </optgroup>
+                        ))}
+                      </select>
+                    </SelectWrap>
                   </div>
-                  
+
+                  {/* Anliegen */}
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Anliegen <span className="text-red-500">*</span></label>
+                    <SelectWrap>
+                      <select name="anliegen" value={fd.anliegen} onChange={setAnliegen} className={selectCls(fd.anliegen)}>
+                        <option value="" disabled>Was können wir für dich tun?</option>
+                        {ANLIEGEN_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                      </select>
+                    </SelectWrap>
+                  </div>
+
+                  {/* Conditional sub-fields */}
+                  {fd.anliegen && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      transition={{ duration: 0.25 }}
+                      className="space-y-4 bg-slate-50 rounded-xl p-4 border border-slate-100"
+                    >
+                      {/* Mitmachen */}
+                      {isMitmachen && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Semester <span className="text-red-500">*</span></label>
+                            <SelectWrap>
+                              <select name="semester" value={fd.semester} onChange={set} className={selectCls(fd.semester)}>
+                                <option value="" disabled>Semester auswählen</option>
+                                {SEMESTER_OPTIONS.map(o => <option key={o} value={o}>{o}</option>)}
+                              </select>
+                            </SelectWrap>
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Nachricht <span className="text-slate-400 font-normal">(optional)</span></label>
+                            <textarea name="nachricht" value={fd.nachricht} onChange={set} rows={4}
+                              className={`${inputCls} resize-none`} placeholder="Möchtest du uns noch etwas mitteilen?" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* WhatsApp */}
+                      {isWhatsApp && (
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1.5">Studienbestätigung <span className="text-red-500">*</span></label>
+                          <p className="text-xs text-slate-500 mb-2">Lade deine Inskriptions- oder Studienbestätigung hoch (PDF, JPG oder PNG, max. 10 MB).</p>
+                          <div
+                            onClick={() => !file && fileRef.current?.click()}
+                            className={`relative border-2 border-dashed rounded-xl p-5 text-center transition-all ${
+                              file ? 'border-green-300 bg-green-50'
+                              : fileError ? 'border-red-300 bg-red-50'
+                              : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50 cursor-pointer'
+                            }`}
+                          >
+                            <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png" onChange={onFile} className="hidden" />
+                            {file ? (
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-2 text-green-700 min-w-0">
+                                  {file.type === 'application/pdf' ? <FileText size={20} /> : <ImageIcon size={20} />}
+                                  <span className="text-sm font-medium truncate">{file.name}</span>
+                                  <span className="text-xs text-green-500 shrink-0">({(file.size / 1024 / 1024).toFixed(1)} MB)</span>
+                                </div>
+                                <button type="button" onClick={(e) => { e.stopPropagation(); clearFile(); }}
+                                  className="p-1 rounded-lg hover:bg-green-100 text-green-600 transition-colors shrink-0">
+                                  <X size={18} />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="text-slate-400">
+                                <Upload size={24} className="mx-auto mb-2" />
+                                <p className="text-sm font-medium">Datei auswählen oder hierher ziehen</p>
+                                <p className="text-xs mt-1">PDF, JPG, PNG bis 10 MB</p>
+                              </div>
+                            )}
+                          </div>
+                          {fileError && <p className="text-xs text-red-500 mt-1">{fileError}</p>}
+                        </div>
+                      )}
+
+                      {/* LV Name field */}
+                      {needsLvName && (
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1.5">Lehrveranstaltungsname <span className="text-red-500">*</span></label>
+                          <input type="text" name="lvName" value={fd.lvName} onChange={set} className={inputCls} placeholder="Name der Lehrveranstaltung" />
+                        </div>
+                      )}
+
+                      {/* Problem mit Lehrenden */}
+                      {isProblemLehrende && (
+                        <>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Name der Lehrperson <span className="text-red-500">*</span></label>
+                            <input type="text" name="lehrpersonName" value={fd.lehrpersonName} onChange={set} className={inputCls} placeholder="Name der Lehrperson" />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-slate-700 mb-1.5">Lehrveranstaltung <span className="text-slate-400 font-normal">(optional)</span></label>
+                            <input type="text" name="lehrveranstaltung" value={fd.lehrveranstaltung} onChange={set} className={inputCls} placeholder="Name der Lehrveranstaltung" />
+                          </div>
+                        </>
+                      )}
+
+                      {/* Description / Problem description */}
+                      {needsDesc && (
+                        <div>
+                          <label className="block text-sm font-medium text-slate-700 mb-1.5">{descLabel} <span className="text-red-500">*</span></label>
+                          <textarea name="beschreibung" value={fd.beschreibung} onChange={set} rows={5}
+                            className={`${inputCls} resize-none`} placeholder={descPlaceholder} />
+                        </div>
+                      )}
+                    </motion.div>
+                  )}
+
+                  {/* Datenschutz */}
+                  <div className="pt-2">
+                    <label className="flex items-start gap-3 cursor-pointer group">
+                      <input type="checkbox" name="datenschutz" checked={fd.datenschutz} onChange={set}
+                        className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-500 focus:ring-blue-500 focus:ring-2 cursor-pointer" />
+                      <span className="text-sm text-slate-600 leading-relaxed group-hover:text-slate-800 transition-colors">
+                        Ich stimme der Verarbeitung meiner Daten zur Weiterleitung und Bearbeitung meiner Anfrage zu. <span className="text-red-500">*</span>
+                      </span>
+                    </label>
+                  </div>
+
+                  {/* Processing info */}
+                  <div className="flex items-start gap-2 bg-blue-50 border border-blue-100 rounded-xl p-4">
+                    <Info size={16} className="text-blue-500 mt-0.5 shrink-0" />
+                    <p className="text-xs text-blue-600 leading-relaxed">
+                      Die Bearbeitung dauert üblicherweise bis zu zwei Tage (inkl. Wochenenden und Feiertagen). In komplexeren Fällen kann es vereinzelt etwas länger dauern. Wir sehen deine Anfrage auf jeden Fall – zusätzliche Nachrichten (z.&nbsp;B. über Instagram) helfen leider nicht, den Prozess zu beschleunigen.
+                    </p>
+                  </div>
+
                   <button
                     type="submit"
-                    disabled={sending}
+                    disabled={sending || !valid()}
                     data-testid="contact-submit"
-                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white font-semibold px-8 py-3 rounded-full transition-all hover:shadow-lg hover:shadow-blue-500/20"
+                    className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-blue-500 hover:bg-blue-600 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-semibold px-8 py-3 rounded-full transition-all hover:shadow-lg hover:shadow-blue-500/20"
                   >
                     {sending ? (
                       <>
@@ -263,12 +473,10 @@ export default function Contact() {
                           transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
                           className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
                         />
-                        Senden...
+                        Wird gesendet...
                       </>
                     ) : (
-                      <>
-                        <Send size={18} /> Nachricht senden
-                      </>
+                      <><Send size={18} /> Anfrage absenden</>
                     )}
                   </button>
                 </form>
@@ -278,7 +486,7 @@ export default function Contact() {
             {/* Contact Info Sidebar */}
             <RevealOnScroll delay={0.1} className="lg:col-span-2">
               <div className="space-y-4">
-                
+
                 {/* Quick Contact */}
                 <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl p-6 text-white">
                   <h3 className="font-bold text-lg mb-4">Direkter Kontakt</h3>
@@ -292,11 +500,11 @@ export default function Contact() {
                       <span className="text-sm">Keplergebäude, JKU Linz</span>
                     </div>
                   </div>
-                  
+
                   <div className="mt-5 pt-5 border-t border-white/20">
                     <p className="text-xs text-blue-200 uppercase tracking-wider mb-3">Social Media</p>
                     <div className="flex gap-3">
-                      <a href="https://www.instagram.com/oeh_wirtschaft_wipaed/" target="_blank" rel="noopener noreferrer" 
+                      <a href="https://www.instagram.com/oeh_wirtschaft_wipaed/" target="_blank" rel="noopener noreferrer"
                         className="w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-colors">
                         <Instagram size={18} />
                       </a>
@@ -309,7 +517,7 @@ export default function Contact() {
                 </div>
 
                 {/* ÖH JKU Link */}
-                <a href="https://oeh.jku.at" target="_blank" rel="noopener noreferrer" 
+                <a href="https://oeh.jku.at" target="_blank" rel="noopener noreferrer"
                   className="block bg-white rounded-2xl p-5 border border-slate-100 hover:border-blue-200 hover:shadow-md transition-all group">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -341,16 +549,16 @@ export default function Contact() {
                   <p className="text-sm text-slate-500">Persönliche Beratung vor Ort oder online</p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-[15px] text-slate-600 leading-relaxed mb-4">
-                    Über den folgenden Button kannst du dir ganz bequem einen Termin für eine Sprechstunde buchen – 
-                    egal ob vor Ort oder online via Zoom. Eine Buchung ist bis spätestens 24 Stunden vor dem 
+                    Über den folgenden Button kannst du dir ganz bequem einen Termin für eine Sprechstunde buchen –
+                    egal ob vor Ort oder online via Zoom. Eine Buchung ist bis spätestens 24 Stunden vor dem
                     gewünschten Termin möglich.
                   </p>
                   <p className="text-[15px] text-slate-600 leading-relaxed mb-4">
-                    Die Beratung ist natürlich <strong className="text-slate-800">kostenlos</strong>, da wir alle 
+                    Die Beratung ist natürlich <strong className="text-slate-800">kostenlos</strong>, da wir alle
                     ehrenamtlich für dich im Einsatz sind.
                   </p>
                   <div className="bg-gold-50 border border-gold-200 rounded-xl p-4 mb-5">
@@ -359,9 +567,9 @@ export default function Contact() {
                       In der vorlesungsfreien Zeit finden keine Sprechstunden statt!
                     </p>
                   </div>
-                  <a 
-                    href="https://zeeg.me/wirtschaft" 
-                    target="_blank" 
+                  <a
+                    href="https://zeeg.me/wirtschaft"
+                    target="_blank"
                     rel="noopener noreferrer"
                     data-testid="sprechstunde-btn"
                     className="inline-flex items-center gap-2 text-sm font-semibold text-white bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-full transition-all hover:shadow-lg hover:shadow-blue-500/20"
@@ -369,7 +577,7 @@ export default function Contact() {
                     <Calendar size={16} /> Sprechstunde buchen <ArrowUpRight size={14} />
                   </a>
                 </div>
-                
+
                 <div className="bg-slate-50 rounded-xl p-5">
                   <h4 className="font-semibold text-slate-800 mb-4 flex items-center gap-2">
                     <MessageCircle size={18} className="text-blue-500" />
@@ -407,26 +615,26 @@ export default function Contact() {
                   <p className="text-sm text-slate-500">Vernetze dich mit anderen Studierenden</p>
                 </div>
               </div>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <p className="text-[15px] text-slate-600 leading-relaxed mb-3">
-                    Um dich im Studium bestmöglich zu unterstützen und den Austausch unter Studierenden zu 
-                    erleichtern, betreiben wir als deine Vertretung eine WhatsApp-Community für alle 
+                    Um dich im Studium bestmöglich zu unterstützen und den Austausch unter Studierenden zu
+                    erleichtern, betreiben wir als deine Vertretung eine WhatsApp-Community für alle
                     wirtschaftswissenschaftlichen Studiengänge an der JKU.
                   </p>
                   <p className="text-[15px] text-slate-600 leading-relaxed">
-                    In den jeweiligen Studiengruppen kannst du dich mit Kolleg:innen aus deinem Studium 
-                    vernetzen, Fragen stellen, Informationen austauschen und erhältst wichtige Hinweise 
+                    In den jeweiligen Studiengruppen kannst du dich mit Kolleg:innen aus deinem Studium
+                    vernetzen, Fragen stellen, Informationen austauschen und erhältst wichtige Hinweise
                     rund um dein Studium, Prüfungen, Services und Veranstaltungen.
                   </p>
                 </div>
-                
+
                 <div className="space-y-3">
                   <div className="bg-slate-50 rounded-xl p-4">
                     <p className="text-sm font-semibold text-slate-700 mb-1">Beitritt zur Community</p>
                     <p className="text-xs text-slate-500">
-                      Schreib eine kurze Nachricht an wirtschaft@oeh.jku.at und sende deine 
+                      Schreib eine kurze Nachricht an wirtschaft@oeh.jku.at und sende deine
                       Inskriptionsbestätigung mit. Nach der Prüfung erhältst du den Einladungslink.
                     </p>
                   </div>
@@ -453,22 +661,22 @@ export default function Contact() {
                   <p className="text-sm text-slate-500">Events direkt in deinen Kalender</p>
                 </div>
               </div>
-              
+
               <p className="text-[15px] text-slate-600 leading-relaxed mb-4">
-                Mit dem Kalender der ÖH Wirtschaft kannst du Veranstaltungen der ÖH und Partner an der JKU 
-                direkt in deinen eigenen Kalender übernehmen. Von Workshops und Info-Veranstaltungen bis hin 
-                zu Partys – alle Events werden automatisch synchronisiert. So behältst du jederzeit den 
+                Mit dem Kalender der ÖH Wirtschaft kannst du Veranstaltungen der ÖH und Partner an der JKU
+                direkt in deinen eigenen Kalender übernehmen. Von Workshops und Info-Veranstaltungen bis hin
+                zu Partys – alle Events werden automatisch synchronisiert. So behältst du jederzeit den
                 Überblick und verpasst keine für dich relevanten Veranstaltungen an der JKU!
               </p>
-              
+
               <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">Kalender importieren</p>
               <div className="flex flex-wrap gap-2">
                 {calLinks.map(l => (
-                  <a 
-                    key={l.name} 
-                    href={l.url} 
-                    target="_blank" 
-                    rel="noopener noreferrer" 
+                  <a
+                    key={l.name}
+                    href={l.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
                     data-testid={`calendar-${l.name.toLowerCase()}`}
                     className="inline-flex items-center gap-1.5 text-sm font-semibold text-blue-500 bg-blue-50 hover:bg-blue-100 px-4 py-2 rounded-full transition-colors"
                   >
@@ -490,15 +698,15 @@ export default function Contact() {
           <RevealOnScroll delay={0.15}>
             <div data-testid="faq-section" className="bg-white rounded-2xl p-6 md:p-8 border border-slate-100">
               <div className="flex items-center gap-3 mb-6">
-                <div className="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center">
-                  <HelpCircle size={24} className="text-purple-500" />
+                <div className="w-12 h-12 rounded-xl bg-blue-50 flex items-center justify-center">
+                  <HelpCircle size={24} className="text-blue-500" />
                 </div>
                 <div>
                   <h2 className="text-xl font-bold text-slate-900">Häufig gestellte Fragen</h2>
                   <p className="text-sm text-slate-500">Antworten auf die wichtigsten Fragen</p>
                 </div>
               </div>
-              
+
               <div className="divide-y divide-slate-100">
                 {faq.map((item, i) => <FaqAcc key={i} q={item.q} a={item.a} testId={`faq-${i}`}/>)}
               </div>

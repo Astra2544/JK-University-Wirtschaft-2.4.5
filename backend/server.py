@@ -10,8 +10,10 @@ import random
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
 from email.header import Header
 from email.utils import formataddr
+from email import encoders
 from datetime import datetime, timedelta, timezone
 from typing import Optional, List
 from contextlib import contextmanager
@@ -19,7 +21,7 @@ from contextlib import contextmanager
 from dotenv import load_dotenv
 load_dotenv()
 
-from fastapi import FastAPI, HTTPException, Depends, status
+from fastapi import FastAPI, HTTPException, Depends, status, File, UploadFile, Form as FastAPIForm
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel, EmailStr
@@ -354,7 +356,15 @@ class ContactForm(BaseModel):
     email: EmailStr
     bereich: str = ""
     subject: Optional[str] = ""
-    message: str
+    message: str = ""
+    studium: Optional[str] = None
+    anliegen: Optional[str] = None
+    semester: Optional[str] = None
+    nachricht: Optional[str] = None
+    lv_name: Optional[str] = None
+    beschreibung: Optional[str] = None
+    lehrperson_name: Optional[str] = None
+    lehrveranstaltung: Optional[str] = None
 
 # Study Program Schemas
 class StudyCategoryCreate(BaseModel):
@@ -829,20 +839,70 @@ def delete_admin(admin_id: int, current_admin: Admin = Depends(get_current_admin
     return {"message": "Admin erfolgreich gelöscht"}
 
 # ─── CONTACT ENDPOINT ────────────────────────────────────────────────────────
-def send_contact_email(to_email: str, form: ContactForm) -> bool:
-    """Send contact form via SMTP"""
+CONTACT_FIELD_LABELS = {
+    "name": "Name",
+    "email": "E-Mail",
+    "studium": "Studium",
+    "anliegen": "Anliegen",
+    "semester": "Semester",
+    "nachricht": "Nachricht",
+    "lv_name": "Lehrveranstaltung",
+    "beschreibung": "Beschreibung",
+    "lehrperson_name": "Name der Lehrperson",
+    "lehrveranstaltung": "Lehrveranstaltung (optional)",
+}
+
+def send_contact_email(to_email: str, fields: dict, file_data: bytes = None, file_name: str = None) -> bool:
     if not all([SMTP_HOST, SMTP_USER, SMTP_PASSWORD, SMTP_FROM_EMAIL]):
-        print("⚠️ SMTP not configured - contact form not sent")
+        print("SMTP not configured - contact form not sent")
         return False
-    
+
     try:
-        msg = MIMEMultipart('alternative')
-        bereich_prefix = f'[{form.bereich}] ' if form.bereich else ''
-        msg['Subject'] = Header(f'{bereich_prefix}{form.subject or "Neue Nachricht"}', 'utf-8')
+        msg = MIMEMultipart('mixed')
+        anliegen = fields.get('anliegen', 'Kontaktanfrage')
+        msg['Subject'] = Header(f'[{anliegen}] Neue Kontaktanfrage', 'utf-8')
         msg['From'] = formataddr((str(Header(SMTP_FROM_NAME, 'utf-8')), SMTP_FROM_EMAIL))
         msg['To'] = to_email
-        msg['Reply-To'] = form.email
-        
+        msg['Reply-To'] = fields.get('email', '')
+
+        fields_html = ""
+        fields_text = ""
+        for key in ["name", "email", "studium", "anliegen", "semester", "lv_name",
+                     "lehrperson_name", "lehrveranstaltung", "nachricht", "beschreibung"]:
+            val = fields.get(key)
+            if not val:
+                continue
+            label = CONTACT_FIELD_LABELS.get(key, key)
+            if key == "email":
+                fields_html += f"""
+                    <div class="field">
+                        <div class="field-label">{label}</div>
+                        <div class="field-value"><a href="mailto:{val}" style="color: #3b82f6; text-decoration: none;">{val}</a></div>
+                    </div>"""
+            elif key in ("nachricht", "beschreibung"):
+                fields_html += f"""
+                    <div class="message-box">
+                        <div class="field-label" style="margin-bottom: 10px;">{label}</div>
+                        <p>{val}</p>
+                    </div>"""
+            else:
+                fields_html += f"""
+                    <div class="field">
+                        <div class="field-label">{label}</div>
+                        <div class="field-value">{val}</div>
+                    </div>"""
+            fields_text += f"{label}: {val}\n"
+
+        if file_name:
+            fields_html += """
+                    <div class="field">
+                        <div class="field-label">Dateianhang</div>
+                        <div class="field-value">""" + file_name + """</div>
+                    </div>"""
+            fields_text += f"Dateianhang: {file_name}\n"
+
+        sender_name = fields.get('name', 'Absender')
+
         html_content = f"""
         <!DOCTYPE html>
         <html>
@@ -867,96 +927,107 @@ def send_contact_email(to_email: str, form: ContactForm) -> bool:
         <body>
             <div class="container">
                 <div class="header">
-                    <h1>📬 Neue Kontaktanfrage</h1>
+                    <h1>Neue Kontaktanfrage</h1>
                     <p>ÖH Wirtschaft Kontaktformular</p>
                 </div>
                 <div class="content">
-                    <div class="field">
-                        <div class="field-label">Name</div>
-                        <div class="field-value">{form.name}</div>
-                    </div>
-                    <div class="field">
-                        <div class="field-label">E-Mail</div>
-                        <div class="field-value"><a href="mailto:{form.email}" style="color: #3b82f6; text-decoration: none;">{form.email}</a></div>
-                    </div>
-                    <div class="field">
-                        <div class="field-label">Bereich</div>
-                        <div class="field-value">{form.bereich or 'Nicht angegeben'}</div>
-                    </div>
-                    <div class="field">
-                        <div class="field-label">Betreff</div>
-                        <div class="field-value">{form.subject or 'Kein Betreff angegeben'}</div>
-                    </div>
-                    <div class="message-box">
-                        <div class="field-label" style="margin-bottom: 10px;">Nachricht</div>
-                        <p>{form.message}</p>
-                    </div>
+                    {fields_html}
                 </div>
                 <div class="footer">
                     <p>Diese E-Mail wurde automatisch generiert.</p>
-                    <p>Du kannst direkt auf diese E-Mail antworten, um {form.name} zu kontaktieren.</p>
+                    <p>Du kannst direkt auf diese E-Mail antworten, um {sender_name} zu kontaktieren.</p>
                 </div>
             </div>
         </body>
         </html>
         """
-        
-        text_content = f"""
-Neue Kontaktanfrage über das ÖH Wirtschaft Kontaktformular
 
-Name: {form.name}
-E-Mail: {form.email}
-Bereich: {form.bereich or 'Nicht angegeben'}
-Betreff: {form.subject or 'Kein Betreff'}
+        text_content = f"Neue Kontaktanfrage - ÖH Wirtschaft Kontaktformular\n\n{fields_text}\n---\nDiese E-Mail wurde automatisch generiert.\nAntworten Sie direkt auf diese E-Mail, um {sender_name} zu kontaktieren.\n"
 
-Nachricht:
-{form.message}
+        alt_part = MIMEMultipart('alternative')
+        alt_part.attach(MIMEText(text_content, 'plain', 'utf-8'))
+        alt_part.attach(MIMEText(html_content, 'html', 'utf-8'))
+        msg.attach(alt_part)
 
----
-Diese E-Mail wurde automatisch generiert.
-Antworten Sie direkt auf diese E-Mail, um {form.name} zu kontaktieren.
-        """
-        
-        part1 = MIMEText(text_content, 'plain', 'utf-8')
-        part2 = MIMEText(html_content, 'html', 'utf-8')
-        msg.attach(part1)
-        msg.attach(part2)
-        
+        if file_data and file_name:
+            attachment = MIMEBase('application', 'octet-stream')
+            attachment.set_payload(file_data)
+            encoders.encode_base64(attachment)
+            attachment.add_header('Content-Disposition', f'attachment; filename="{file_name}"')
+            msg.attach(attachment)
+
         if SMTP_USE_TLS:
             server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10)
             server.starttls()
         else:
             server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=10)
-        
+
         server.login(SMTP_USER, SMTP_PASSWORD)
         server.sendmail(SMTP_FROM_EMAIL, to_email, msg.as_string())
         server.quit()
-        
-        print(f"✅ Contact email sent to {to_email}")
+
+        print(f"Contact email sent to {to_email}")
         return True
-        
+
     except Exception as e:
-        print(f"❌ Failed to send contact email: {e}")
+        print(f"Failed to send contact email: {e}")
         return False
 
 @app.post("/api/contact")
-def send_contact_message(form: ContactForm, db: Session = Depends(get_db)):
-    """Receive contact form submission and send email to all recipients"""
-    # Get contact email recipients from settings (comma-separated)
+async def send_contact_message(
+    name: str = FastAPIForm(...),
+    email: str = FastAPIForm(...),
+    studium: str = FastAPIForm(...),
+    anliegen: str = FastAPIForm(...),
+    semester: Optional[str] = FastAPIForm(None),
+    nachricht: Optional[str] = FastAPIForm(None),
+    lv_name: Optional[str] = FastAPIForm(None),
+    beschreibung: Optional[str] = FastAPIForm(None),
+    lehrperson_name: Optional[str] = FastAPIForm(None),
+    lehrveranstaltung: Optional[str] = FastAPIForm(None),
+    file: Optional[UploadFile] = File(None),
+    db: Session = Depends(get_db),
+):
+    fields = {
+        "name": name, "email": email, "studium": studium, "anliegen": anliegen,
+    }
+    if semester:
+        fields["semester"] = semester
+    if nachricht:
+        fields["nachricht"] = nachricht
+    if lv_name:
+        fields["lv_name"] = lv_name
+    if beschreibung:
+        fields["beschreibung"] = beschreibung
+    if lehrperson_name:
+        fields["lehrperson_name"] = lehrperson_name
+    if lehrveranstaltung:
+        fields["lehrveranstaltung"] = lehrveranstaltung
+
+    file_data = None
+    file_name = None
+    if file and file.filename:
+        allowed_types = ["application/pdf", "image/jpeg", "image/png"]
+        if file.content_type not in allowed_types:
+            raise HTTPException(status_code=400, detail="Nur PDF, JPG und PNG Dateien sind erlaubt.")
+        file_data = await file.read()
+        if len(file_data) > 10 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Die Datei darf maximal 10 MB gross sein.")
+        file_name = file.filename
+
     setting = db.query(AppSettings).filter(AppSettings.key == "contact_emails").first()
     recipient_emails = []
     if setting and setting.value:
         recipient_emails = [e.strip() for e in setting.value.split(',') if e.strip()]
-    
+
     emails_sent = 0
     if recipient_emails:
         for recipient in recipient_emails:
-            if send_contact_email(recipient, form):
+            if send_contact_email(recipient, fields, file_data, file_name):
                 emails_sent += 1
-    
-    # Log to console (Activity log requires admin_id which we don't have for public contact form)
-    print(f"📬 Kontaktanfrage von {form.name} ({form.email}): [{form.bereich}] {form.subject or 'Kein Betreff'} - E-Mails gesendet: {emails_sent}/{len(recipient_emails)}")
-    
+
+    print(f"Kontaktanfrage von {name} ({email}): [{anliegen}] - E-Mails gesendet: {emails_sent}/{len(recipient_emails)}")
+
     return {
         "success": True,
         "message": "Nachricht erfolgreich gesendet" if emails_sent > 0 else "Nachricht wurde empfangen",

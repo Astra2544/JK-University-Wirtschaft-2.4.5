@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Send, Maximize2, Minimize2, ChevronRight } from 'lucide-react';
+import { X, Send, Maximize2, Minimize2, ChevronRight, MessageCircle } from 'lucide-react';
 import { findResponse, getQuickActions, getGreeting } from './OEHliMatcher';
 
 const TYPING_MIN_DELAY = 800;
@@ -68,7 +68,7 @@ function TypingIndicator() {
     >
       <div>
         <div className="flex items-center gap-1.5 mb-1">
-          <img src="/images/ÖHli_logo.png" alt="ÖHli" className="w-6 h-6 object-contain flex-shrink-0" />
+          <img src="/images/ÖHli_logo.png" alt="ÖHli" className="w-8 h-8 object-contain flex-shrink-0" />
           <span className="text-[11px] font-medium text-slate-400">ÖHli tippt...</span>
         </div>
         <div className="px-4 py-3 bg-slate-50 rounded-2xl rounded-tl-md border border-slate-100 inline-flex gap-1.5">
@@ -326,8 +326,8 @@ export default function OEHliChat() {
             className="fixed bottom-5 right-5 z-[9999] group"
           >
             <div className="relative">
-              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 flex items-center justify-center hover:shadow-xl hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300 p-2">
-                <img src="/images/ÖHli_logo.png" alt="ÖHli" className="w-10 h-10 object-contain" />
+              <div className="w-14 h-14 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 shadow-lg shadow-blue-500/25 flex items-center justify-center hover:shadow-xl hover:shadow-blue-500/30 hover:scale-105 transition-all duration-300">
+                <MessageCircle className="w-7 h-7 text-white" />
               </div>
               <AnimatePresence>
                 {unreadCount > 0 && (

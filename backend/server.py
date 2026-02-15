@@ -973,6 +973,105 @@ def send_contact_email(to_email: str, fields: dict, file_data: bytes = None, fil
         print(f"Failed to send contact email: {e}")
         return False
 
+def send_confirmation_email(customer_email: str, customer_name: str, fields: dict) -> bool:
+    if not all([SMTP_HOST, SMTP_USER, SMTP_PASSWORD, SMTP_FROM_EMAIL]):
+        print("SMTP not configured - confirmation email not sent")
+        return False
+
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = Header('Deine Anfrage bei der ÖH Wirtschaft JKU ist eingegangen', 'utf-8')
+        msg['From'] = formataddr((str(Header(SMTP_FROM_NAME, 'utf-8')), SMTP_FROM_EMAIL))
+        msg['To'] = customer_email
+
+        fields_html = ""
+        fields_text = ""
+        for key in ["name", "email", "studium", "anliegen", "semester", "lv_name",
+                     "lehrperson_name", "lehrveranstaltung", "nachricht", "beschreibung"]:
+            val = fields.get(key)
+            if not val:
+                continue
+            label = CONTACT_FIELD_LABELS.get(key, key)
+            if key in ("nachricht", "beschreibung"):
+                fields_html += f"""
+                    <div style="background: #f1f5f9; padding: 16px; border-radius: 8px; margin-bottom: 12px;">
+                        <div style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;">{label}</div>
+                        <p style="margin: 0; color: #334155; line-height: 1.6; white-space: pre-wrap;">{val}</p>
+                    </div>"""
+            else:
+                fields_html += f"""
+                    <div style="margin-bottom: 12px;">
+                        <div style="font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">{label}</div>
+                        <div style="font-size: 14px; color: #1e293b; background: #f8fafc; padding: 10px 14px; border-radius: 8px; border-left: 3px solid #3b82f6;">{val}</div>
+                    </div>"""
+            fields_text += f"{label}: {val}\n"
+
+        html_content = f"""
+        <!DOCTYPE html>
+        <html>
+        <head><meta charset="utf-8"></head>
+        <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f8fafc; margin: 0; padding: 20px;">
+            <div style="max-width: 600px; margin: 0 auto; background: white; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 30px; text-align: center;">
+                    <h1 style="color: white; margin: 0; font-size: 22px;">Anfrage eingegangen</h1>
+                    <p style="color: rgba(255,255,255,0.85); margin: 8px 0 0; font-size: 14px;">Wir haben deine Nachricht erhalten</p>
+                </div>
+                <div style="padding: 30px;">
+                    <p style="color: #334155; font-size: 15px; line-height: 1.7; margin: 0 0 20px;">
+                        Hallo {customer_name},
+                    </p>
+                    <p style="color: #334155; font-size: 15px; line-height: 1.7; margin: 0 0 20px;">
+                        vielen Dank für deine Anfrage! Wir haben diese erfolgreich erhalten und werden uns
+                        <strong>innerhalb von 2 Werktagen</strong> bei dir melden.
+                    </p>
+                    <div style="background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 12px; padding: 16px 20px; margin-bottom: 24px;">
+                        <p style="color: #1e40af; font-size: 14px; margin: 0; font-weight: 500;">
+                            Bitte habe etwas Geduld &ndash; wir bearbeiten alle Anfragen so schnell wie möglich.
+                        </p>
+                    </div>
+                    <h3 style="color: #1e293b; font-size: 14px; text-transform: uppercase; letter-spacing: 0.5px; margin: 0 0 16px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0;">
+                        Deine Angaben im Überblick
+                    </h3>
+                    {fields_html}
+                </div>
+                <div style="background: #f8fafc; padding: 20px; text-align: center; border-top: 1px solid #e2e8f0;">
+                    <p style="color: #64748b; font-size: 12px; margin: 4px 0;">Diese E-Mail wurde automatisch generiert.</p>
+                    <p style="color: #64748b; font-size: 12px; margin: 4px 0;">Bei dringenden Fragen erreichst du uns unter <a href="mailto:wirtschaft@oeh.jku.at" style="color: #3b82f6; text-decoration: none;">wirtschaft@oeh.jku.at</a></p>
+                    <p style="color: #94a3b8; font-size: 11px; margin: 10px 0 0;">ÖH Wirtschaft JKU</p>
+                </div>
+            </div>
+        </body>
+        </html>
+        """
+
+        text_content = (
+            f"Hallo {customer_name},\n\n"
+            f"vielen Dank für deine Anfrage! Wir haben diese erfolgreich erhalten und werden uns innerhalb von 2 Werktagen bei dir melden.\n\n"
+            f"Deine Angaben im Überblick:\n{fields_text}\n"
+            f"---\nDiese E-Mail wurde automatisch generiert.\n"
+            f"Bei dringenden Fragen erreichst du uns unter wirtschaft@oeh.jku.at\n"
+        )
+
+        msg.attach(MIMEText(text_content, 'plain', 'utf-8'))
+        msg.attach(MIMEText(html_content, 'html', 'utf-8'))
+
+        if SMTP_USE_TLS:
+            server = smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=10)
+            server.starttls()
+        else:
+            server = smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=10)
+
+        server.login(SMTP_USER, SMTP_PASSWORD)
+        server.sendmail(SMTP_FROM_EMAIL, customer_email, msg.as_string())
+        server.quit()
+
+        print(f"Confirmation email sent to {customer_email}")
+        return True
+
+    except Exception as e:
+        print(f"Failed to send confirmation email: {e}")
+        return False
+
 @app.post("/api/contact")
 async def send_contact_message(
     name: str = FastAPIForm(...),
@@ -1026,13 +1125,16 @@ async def send_contact_message(
             if send_contact_email(recipient, fields, file_data, file_name):
                 emails_sent += 1
 
-    print(f"Kontaktanfrage von {name} ({email}): [{anliegen}] - E-Mails gesendet: {emails_sent}/{len(recipient_emails)}")
+    confirmation_sent = send_confirmation_email(email, name, fields)
+
+    print(f"Kontaktanfrage von {name} ({email}): [{anliegen}] - E-Mails gesendet: {emails_sent}/{len(recipient_emails)}, Bestätigung: {'ja' if confirmation_sent else 'nein'}")
 
     return {
         "success": True,
         "message": "Nachricht erfolgreich gesendet" if emails_sent > 0 else "Nachricht wurde empfangen",
         "email_sent": emails_sent > 0,
-        "recipients_count": emails_sent
+        "recipients_count": emails_sent,
+        "confirmation_sent": confirmation_sent
     }
 
 # ─── NEWS ENDPOINTS ─────────────────────────────────────────────────────────
